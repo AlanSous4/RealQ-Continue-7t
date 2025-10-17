@@ -69,212 +69,40 @@ export interface Database {
           created_at?: string
         }
       }
-      inspections: {
+      inspections: { /* ... */ },
+      inspection_details: { /* ... */ },
+      tests: { /* ... */ },
+      tools: { /* ... */ },
+      suppliers: { /* ... */ },
+      manufacturers: { /* ... */ },
+      action_plans: { /* ... */ },
+      non_conformities: { /* ... */ },
+
+      // ✅ TABELA REVENDEDORES INCORPORADA
+      revendedores: {
         Row: {
           id: string
-          product_id: string
-          batch: string
-          supplier_id: string
-          manufacturer_id: string
-          expiry_date: string
-          status: string
-          created_at: string
-          created_by: string
-        }
-        Insert: {
-          id?: string
-          product_id: string
-          batch: string
-          supplier_id: string
-          manufacturer_id: string
-          expiry_date: string
-          status?: string
-          created_at?: string
-          created_by: string
-        }
-        Update: {
-          id?: string
-          product_id?: string
-          batch?: string
-          supplier_id?: string
-          manufacturer_id?: string
-          expiry_date?: string
-          status?: string
-          created_at?: string
-          created_by?: string
-        }
-      }
-      inspection_details: {
-        Row: {
-          id: string
-          inspection_id: string
-          test_id: string
-          result: string
-          notes: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          inspection_id: string
-          test_id: string
-          result: string
-          notes?: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          inspection_id?: string
-          test_id?: string
-          result?: string
-          notes?: string
-          created_at?: string
-        }
-      }
-      tests: {
-        Row: {
-          id: string
-          name: string
-          description: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          description?: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          description?: string
-          created_at?: string
-        }
-      }
-      tools: {
-        Row: {
-          id: string
-          name: string
-          description: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          description?: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          description?: string
-          created_at?: string
-        }
-      }
-      suppliers: {
-        Row: {
-          id: string
-          name: string
-          contact: string
+          nome: string
           email: string
-          phone: string
+          telefone: string
+          cidade: string
           created_at: string
         }
         Insert: {
           id?: string
-          name: string
-          contact?: string
-          email?: string
-          phone?: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          contact?: string
-          email?: string
-          phone?: string
-          created_at?: string
-        }
-      }
-      manufacturers: {
-        Row: {
-          id: string
-          name: string
-          contact: string
+          nome: string
           email: string
-          phone: string
-          created_at: string
+          telefone: string
+          cidade: string
+          created_at?: string
         }
-        Insert: {
+        Update: {
           id?: string
-          name: string
-          contact?: string
+          nome?: string
           email?: string
-          phone?: string
+          telefone?: string
+          cidade?: string
           created_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          contact?: string
-          email?: string
-          phone?: string
-          created_at?: string
-        }
-      }
-      action_plans: {
-        Row: {
-          id: string
-          inspection_id: string
-          description: string
-          status: string
-          due_date: string
-          created_at: string
-          created_by: string
-        }
-        Insert: {
-          id?: string
-          inspection_id: string
-          description: string
-          status?: string
-          due_date: string
-          created_at?: string
-          created_by: string
-        }
-        Update: {
-          id?: string
-          inspection_id?: string
-          description?: string
-          status?: string
-          due_date?: string
-          created_at?: string
-          created_by?: string
-        }
-      }
-      non_conformities: {
-        Row: {
-          id: string
-          inspection_id: string
-          description: string
-          severity: string
-          created_at: string
-          created_by: string
-        }
-        Insert: {
-          id?: string
-          inspection_id: string
-          description: string
-          severity?: string
-          created_at?: string
-          created_by: string
-        }
-        Update: {
-          id?: string
-          inspection_id?: string
-          description?: string
-          severity?: string
-          created_at?: string
-          created_by?: string
         }
       }
     }
