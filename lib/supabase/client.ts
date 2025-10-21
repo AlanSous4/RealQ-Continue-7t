@@ -1,19 +1,21 @@
 import { createClient } from "@supabase/supabase-js"
 import type { Database } from "@/lib/database.types"
 
+// 🔒 Garantindo que variáveis de ambiente existem
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error("Supabase environment variables are missing.")
+  throw new Error("❌ Variáveis de ambiente do Supabase não configuradas corretamente.")
 }
 
-console.log("[Supabase] Initializing client with URL:", supabaseUrl)
+// ✅ Uma única instância do cliente
+export const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey)
 
-const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
-
+// ✅ Compatibilidade com código legado
 export function getSupabaseClient() {
-  return supabase
+  return supabaseClient
 }
 
-export { supabase }
+// ✅ Permitir importação direta
+export default supabaseClient

@@ -6,27 +6,29 @@ export interface Database {
       users: {
         Row: {
           id: string
-          email: string
-          name: string
-          phone: string
-          user_type: string
-          created_at: string
+          email: string | null
+          name: string | null
+          phone: string | null
+          user_type: string | null
+          created_at: string | null
+          updated_at: string | null
         }
         Insert: {
           id?: string
-          email: string
-          name: string
-          phone?: string
-          user_type?: string
-          created_at?: string
+          email?: string | null
+          name?: string | null
+          phone?: string | null
+          user_type?: string | null
+          created_at?: string | null
+          updated_at?: string | null
         }
         Update: {
           id?: string
-          email?: string
-          name?: string
-          phone?: string
-          user_type?: string
-          created_at?: string
+          email?: string | null
+          name?: string | null
+          phone?: string | null
+          user_type?: string | null
+          updated_at?: string | null
         }
       }
       products: {
