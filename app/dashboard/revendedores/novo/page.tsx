@@ -10,18 +10,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { supabase } from "@/lib/supabase/client"
+import { supabaseClient } from "@/lib/supabase/client";
 
 export default function NewRevendedorPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Database["public"]["Tables"]["revendedores"]["Insert"]>({
     nome: "",
     email: "",
     telefone: "",
     cidade: "",
-  })
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -32,9 +32,9 @@ export default function NewRevendedorPage() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    const { error } = await supabase
+    const { error } = await supabaseClient
   .from("revendedores")
-  .insert([formData as Database["public"]["Tables"]["revendedores"]["Insert"]])
+  .insert([formData]);
 
     if (error) {
       toast({
