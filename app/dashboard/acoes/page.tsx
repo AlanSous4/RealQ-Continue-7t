@@ -1,5 +1,6 @@
 "use client"
-
+import { Plus } from "lucide-react"
+import Link from "next/link"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -24,6 +25,14 @@ export default function ActionsPage() {
           <h2 className="text-3xl font-bold tracking-tight">Ações</h2>
           <p className="text-muted-foreground">Gerencie planos de ação e não conformidades</p>
         </div>
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <Button asChild>
+          <Link href="/dashboard/acoes/nova">
+            <Plus className="mr-2 h-4 w-4" />
+            Nova Ação
+          </Link>
+        </Button>
+        </div>
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row">
@@ -38,6 +47,7 @@ export default function ActionsPage() {
           <Button variant="outline">Exportar</Button>
         </div>
       </div>
+        
 
       <Tabs defaultValue="action-plans" className="space-y-4">
         <TabsList>
