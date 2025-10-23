@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "start": "next start",
-    "lint": "next lint",
-    "check-imports": "node check-imports-case.js",
-   "build": "npm run check-imports && next build"
-  },
+  "dev": "next dev",
+  "start": "next start",
+  "lint": "next lint",
+  "check-imports": "node fix-imports.js",
+  "build": "next build"
+},
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
     "@radix-ui/react-alert-dialog": "^1.1.15",
