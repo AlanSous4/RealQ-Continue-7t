@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "check-imports": "node check-imports-case.js",
+   "build": "npm run check-imports && next build"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
