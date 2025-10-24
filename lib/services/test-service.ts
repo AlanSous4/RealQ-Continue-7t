@@ -56,7 +56,7 @@ export async function createTest(data: { name: string; description?: string }): 
       .from("tests")
       .insert({
         name: data.name,
-        description: data.description ?? null,
+        description: data.description ?? null, // ✅ usa null caso não seja passado
       })
       .select()
       .single()
@@ -83,7 +83,7 @@ export async function updateTest(
       .from("tests")
       .update({
         name: data.name,
-        description: data.description,
+        description: data.description ?? null, // ✅ evita problemas com undefined
       })
       .eq("id", id)
       .select()
