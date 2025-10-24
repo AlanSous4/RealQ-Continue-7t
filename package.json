@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-  "dev": "next dev",
-  "start": "next start",
-  "lint": "next lint",
-  "check-imports": "node fix-imports.js",
-  "build": "next build"
-},
+    "dev": "next dev",
+    "start": "next start",
+    "lint": "next lint",
+    "check-imports": "node fix-imports.js",
+    "build": "next build"
+  },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -23,6 +23,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tabs": "^1.1.13",
+    "@radix-ui/react-toast": "^1.2.15",
     "@supabase/auth-helpers-nextjs": "latest",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
