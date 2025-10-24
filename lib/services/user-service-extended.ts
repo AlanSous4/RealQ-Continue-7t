@@ -6,6 +6,9 @@ import type { Database } from "@/lib/database.types";
 type UserRow = Database["public"]["Tables"]["users"]["Row"];
 type UserUpdate = Database["public"]["Tables"]["users"]["Update"];
 
+// ==========================
+// 🔹 Interfaces de Tipos
+// ==========================
 export interface UserProfile {
   id: string;
   name: string;
@@ -13,6 +16,8 @@ export interface UserProfile {
   phone?: string;
   user_type?: string;
   profile_image?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface UserProfileUpdate {
@@ -21,12 +26,16 @@ export interface UserProfileUpdate {
   profile_image?: string;
 }
 
-// Função auxiliar para padronizar mensagens de erro
+// ==========================
+// 🔹 Função auxiliar de erro
+// ==========================
 function handleError(message: string, error?: any): void {
   console.error(`${message}${error ? `: ${error.message}` : ""}`);
 }
 
-// ✅ Obter o usuário atual
+// ==========================
+// ✅ Obter usuário atual
+// ==========================
 export async function getCurrentUser(): Promise<UserProfile | null> {
   const supabase = supabaseClient;
   const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
@@ -50,7 +59,9 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
   return mapUserRowToUserProfile(data);
 }
 
-// Atualizar perfil do usuário atual
+// ==========================
+// ✅ Atualizar perfil atual
+// ==========================
 export async function updateCurrentUserProfile(profile: UserProfileUpdate): Promise<boolean> {
   const supabase = supabaseClient;
   const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
@@ -59,7 +70,7 @@ export async function updateCurrentUserProfile(profile: UserProfileUpdate): Prom
     throw new Error("Usuário não autenticado.");
   }
 
-  // Garantir que o objeto updates seja do tipo UserUpdate
+  // Garante que o objeto updates siga o tipo UserUpdate
   const updates: UserUpdate = {
     name: profile.name,
     phone: profile.phone,
@@ -79,7 +90,9 @@ export async function updateCurrentUserProfile(profile: UserProfileUpdate): Prom
   return true;
 }
 
+// ==========================
 // ✅ Listar todos os usuários
+// ==========================
 export async function listUsers(): Promise<UserProfile[]> {
   const supabase = supabaseClient;
   const { data, error } = await supabase
@@ -95,7 +108,9 @@ export async function listUsers(): Promise<UserProfile[]> {
   return data.map(mapUserRowToUserProfile);
 }
 
+// ==========================
 // ✅ Atualizar usuário por ID
+// ==========================
 export async function updateUser(id: string, profile: Partial<UserUpdate>): Promise<boolean> {
   if (!id) throw new Error("ID do usuário é obrigatório.");
   if (!profile || Object.keys(profile).length === 0) {
@@ -120,7 +135,10 @@ export async function updateUser(id: string, profile: Partial<UserUpdate>): Prom
 
   return true;
 }
-// ✅ Excluir usuário por ID com validação
+
+// ==========================
+// ✅ Excluir usuário por ID
+// ==========================
 export async function deleteUser(id: string): Promise<boolean> {
   if (!id) throw new Error("ID do usuário é obrigatório.");
 
@@ -138,7 +156,9 @@ export async function deleteUser(id: string): Promise<boolean> {
   return true;
 }
 
+// ==========================
 // ✅ Obter usuário por ID
+// ==========================
 export async function getUserById(id: string): Promise<UserProfile | null> {
   if (!id) throw new Error("ID do usuário é obrigatório.");
 
@@ -157,12 +177,16 @@ export async function getUserById(id: string): Promise<UserProfile | null> {
   return mapUserRowToUserProfile(data);
 }
 
+// ==========================
 // ✅ Alias para compatibilidade
+// ==========================
 export async function getAllUsers(): Promise<UserProfile[]> {
   return listUsers();
 }
 
-// ✅ Funções de tipos de usuário
+// ==========================
+// ✅ Tipos de Usuário
+// ==========================
 export function getUserTypeDescription(userType: string): string {
   switch (userType) {
     case "quality-user":
@@ -210,7 +234,9 @@ export function getAllUserTypes(): UserType[] {
   }));
 }
 
-// ✅ Função auxiliar para mapear UserRow para UserProfile
+// ==========================
+// ✅ Map UserRow → UserProfile
+// ==========================
 function mapUserRowToUserProfile(row: UserRow): UserProfile {
   return {
     id: row.id,
@@ -218,6 +244,12 @@ function mapUserRowToUserProfile(row: UserRow): UserProfile {
     email: row.email,
     phone: row.phone || undefined,
     user_type: row.user_type || undefined,
-    
+    created_at: row.created_at || undefined,
+    updated_at: row.updated_at || undefined,
   };
 }
+
+// ==========================
+// ✅ Alias para compatibilidade com componentes antigos
+// ==========================
+export type User = UserProfile;
