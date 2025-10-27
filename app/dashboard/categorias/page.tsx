@@ -26,7 +26,7 @@ export default function CategoriasPage() {
           <p className="text-muted-foreground">Gerencie as categorias de produtos</p>
         </div>
         <Button asChild>
-          <Link href="/dashboard/categorias/nova">
+          <Link href="app/dashboard/categorias/nova">
             <Plus className="mr-2 h-4 w-4" />
             Nova Categoria
           </Link>
