@@ -5,13 +5,7 @@ import Link from "next/link"
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import {
-  BarChart3,
-  ClipboardCheck,
-  FileCheck,
-  AlertTriangle,
-  Menu,
-} from "lucide-react"
+import { BarChart3, ClipboardCheck, FileCheck, AlertTriangle, Menu } from "lucide-react"
 import { useEffect, useState } from "react"
 
 interface DashboardLayoutProps {
@@ -28,7 +22,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   ]
 
   const FOOTER_HEIGHT = 80
-  const [buttonSize, setButtonSize] = useState(64) // tamanho padrão
+  const [buttonSize, setButtonSize] = useState(64) // tamanho padrão do botão
   const [iconSize, setIconSize] = useState(24) // tamanho padrão do ícone
 
   // Ajusta tamanho do botão e ícone dinamicamente
@@ -67,7 +61,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         style={{ height: FOOTER_HEIGHT }}
       >
         <nav className="flex items-center justify-between h-full px-1">
-          {footerItems.map((item, index) =>
+          {footerItems.map((item) =>
             item.title !== "Menu" ? (
               <Link key={item.title} href={item.href} passHref>
                 <Button
@@ -95,6 +89,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </span>
                   </Button>
                 </SheetTrigger>
+
                 <SheetContent
                   side="left"
                   className="pr-0 animate-slide-in-left"
