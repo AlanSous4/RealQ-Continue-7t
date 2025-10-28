@@ -23,13 +23,14 @@ import {
   AccordionItem,
   AccordionTrigger,
   AccordionContent,
-} from "../../components/ui/accordion"
+} from "@/components/ui/accordion"
 
 interface DashboardSidebarProps {
   className?: string
+  isMobile?: boolean
 }
 
-export function DashboardSidebar({ className }: DashboardSidebarProps) {
+export function DashboardSidebar({ className, isMobile = false }: DashboardSidebarProps) {
   const pathname = usePathname()
 
   const navSections = [
@@ -63,33 +64,63 @@ export function DashboardSidebar({ className }: DashboardSidebarProps) {
     },
   ]
 
+  // Mobile: usa Accordion, Desktop: lista fixa sem Accordion
+  if (isMobile) {
+    return (
+      <nav className={cn("flex flex-col gap-4 p-4 h-full border-r overflow-y-auto", className)}>
+        <Accordion type="multiple" className="w-full">
+          {navSections.map((section) => (
+            <AccordionItem key={section.title} value={section.title}>
+              <AccordionTrigger className="text-sm font-semibold">{section.title}</AccordionTrigger>
+              <AccordionContent className="pl-2">
+                <ul className="space-y-1 mt-1">
+                  {section.items.map((item) => (
+                    <li key={item.title}>
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors",
+                          pathname === item.href ? "bg-accent text-accent-foreground" : "transparent"
+                        )}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        {item.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </nav>
+    )
+  }
+
+  // Desktop: sidebar fixa sem Accordion
   return (
-    <nav className={cn("flex flex-col gap-4 p-4 h-full border-r overflow-y-auto", className)}>
-      <Accordion type="multiple" className="w-full">
-        {navSections.map((section) => (
-          <AccordionItem key={section.title} value={section.title}>
-            <AccordionTrigger className="text-sm font-semibold">{section.title}</AccordionTrigger>
-            <AccordionContent className="pl-2">
-              <ul className="space-y-1 mt-1">
-                {section.items.map((item) => (
-                  <li key={item.title}>
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors",
-                        pathname === item.href ? "bg-accent text-accent-foreground" : "transparent"
-                      )}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {item.title}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
+    <nav className={cn("flex flex-col gap-4 p-4 h-full border-r", className)}>
+      {navSections.map((section) => (
+        <div key={section.title}>
+          <h3 className="text-xs font-semibold text-muted-foreground px-2">{section.title}</h3>
+          <ul className="space-y-1">
+            {section.items.map((item) => (
+              <li key={item.title}>
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors",
+                    pathname === item.href ? "bg-accent text-accent-foreground" : "transparent"
+                  )}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
     </nav>
   )
 }
