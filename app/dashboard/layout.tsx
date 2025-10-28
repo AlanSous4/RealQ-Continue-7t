@@ -40,19 +40,7 @@ export default async function DashboardLayout({
       <MobileNav className="md:hidden" />
 
       {/* Botão hambúrguer flutuante - aparece apenas em mobile */}
-      <div className="fixed bottom-4 right-4 z-50 md:hidden">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="default" size="icon" className="rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90">
-              <Menu className="h-6 w-6" />
-              <span className="sr-only">Abrir menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[240px] sm:w-[300px] pr-0">
-            <DashboardSidebar />
-          </SheetContent>
-        </Sheet>
-      </div>
+      
 
       {/* Debug session, se existir */}
       {session?.user && <DebugSession userId={session.user.id} />}
