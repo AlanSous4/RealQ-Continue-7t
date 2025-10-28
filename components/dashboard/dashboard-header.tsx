@@ -87,17 +87,7 @@ export function DashboardHeader() {
         {/* ====== Lado esquerdo ====== */}
         <div className="flex items-center gap-2 md:gap-4">
           {/* Menu lateral mobile */}
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[240px] sm:w-[300px] pr-0">
-              <DashboardSidebar />
-            </SheetContent>
-          </Sheet>
+          
 
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center space-x-2">

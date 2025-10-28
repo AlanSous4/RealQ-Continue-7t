@@ -38,10 +38,7 @@ export default async function DashboardLayout({
 
       {/* Mobile nav do dashboard */}
       <MobileNav className="md:hidden" />
-
-      {/* Botão hambúrguer flutuante - aparece apenas em mobile */}
       
-
       {/* Debug session, se existir */}
       {session?.user && <DebugSession userId={session.user.id} />}
     </div>
