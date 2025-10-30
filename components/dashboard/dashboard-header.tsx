@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Bell, Menu, User, LogOut } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import {
@@ -83,11 +82,21 @@ export function DashboardHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
+      <div className="container flex h-16 items-center justify-between px-4">
         {/* ====== Lado esquerdo ====== */}
         <div className="flex items-center gap-2 md:gap-4">
           {/* Menu lateral mobile */}
-          
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Abrir menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0">
+              <DashboardSidebar isMobile />
+            </SheetContent>
+          </Sheet>
 
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center space-x-2">
@@ -98,23 +107,19 @@ export function DashboardHeader() {
         </div>
 
         {/* ====== Lado direito ====== */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 md:gap-3">
+          {/* Alternar tema */}
           <ThemeToggle />
 
-          {/* ====== Notificações ====== */}
+          {/* Notificações */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative rounded-full hover:bg-muted"
-              >
+              <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-muted">
                 <Bell className="h-5 w-5" />
                 <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full" />
                 <span className="sr-only">Notificações</span>
               </Button>
             </DropdownMenuTrigger>
-
             <DropdownMenuContent
               align="end"
               className="w-80 max-w-[90vw] p-2 sm:w-96 bg-background shadow-lg rounded-xl"
@@ -123,57 +128,20 @@ export function DashboardHeader() {
                 Notificações
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-
               <ul className="space-y-3">
                 <li className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20">
-                  <p className="font-medium text-green-700 dark:text-green-300">
-                    🎯 Meta alcançada!
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Você atingiu 75% da sua meta de aposentadoria.
-                  </p>
+                  <p className="font-medium text-green-700 dark:text-green-300">🎯 Meta alcançada!</p>
+                  <p className="text-sm text-muted-foreground">Você atingiu 75% da sua meta.</p>
                 </li>
-
-                <li className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
-                  <p className="font-medium text-blue-700 dark:text-blue-300">
-                    💡 Nova recomendação disponível
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Temos uma sugestão de investimento para você.
-                  </p>
-                </li>
-
-                <li className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20">
-                  <p className="font-medium text-red-700 dark:text-red-300">
-                    ⚠️ Despesa acima do esperado
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Seus gastos esse mês estão 15% acima da média.
-                  </p>
-                </li>
-
                 <li className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
-                  <p className="font-medium text-yellow-700 dark:text-yellow-300">
-                    ⏰ Lembrete de contribuição
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Não esqueça de fazer sua contribuição mensal.
-                  </p>
-                </li>
-
-                <li className="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-center">
-                  <p className="font-medium text-purple-700 dark:text-purple-300">
-                    🔍 Análise 360° atualizada
-                  </p>
-                  <p className="text-sm text-primary font-medium cursor-pointer hover:underline">
-                    Ver todas as notificações
-                  </p>
+                  <p className="font-medium text-yellow-700 dark:text-yellow-300">⏰ Lembrete</p>
+                  <p className="text-sm text-muted-foreground">Não esqueça de revisar seu progresso.</p>
                 </li>
               </ul>
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* ====== Menu do usuário ====== */}
+          {/* Menu do usuário */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
@@ -182,10 +150,7 @@ export function DashboardHeader() {
                 ) : (
                   <Avatar className="h-8 w-8">
                     {user?.profile_image ? (
-                      <AvatarImage
-                        src={user.profile_image}
-                        alt={user.name || "Usuário"}
-                      />
+                      <AvatarImage src={user.profile_image} alt={user.name || "Usuário"} />
                     ) : null}
                     <AvatarFallback>
                       {user?.name ? getInitials(user.name) : "U"}
