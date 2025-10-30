@@ -42,10 +42,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // 🔹 Protege a rota e mantém o usuário sincronizado
   useEffect(() => {
     const checkUser = async () => {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession()
+      const { data: { session }, error } = await supabase.auth.getSession()
 
       if (error) {
         console.error("Erro ao obter sessão:", error)
@@ -59,18 +56,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       }
 
       // 🔹 Define o email do usuário logado
-      setUserEmail(session.user?.email ?? null)
+      setUserEmail(session?.user?.email ?? null)
 
       // 🔹 Mantém o estado sincronizado com mudanças de login/logout
-      const { data: listener } = supabase.auth.onAuthStateChange(
-        (_event, session) => {
-          if (session?.user) {
-            setUserEmail(session.user.email ?? null)
-          } else {
-            window.location.href = "/login"
-          }
+      const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session?.user) {
+          setUserEmail(session.user.email ?? null)
+        } else {
+          window.location.href = "/login"
         }
-      )
+      })
 
       return () => {
         listener.subscription.unsubscribe()
@@ -138,11 +133,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
             aria-label="Alternar tema"
           >
-            {theme === "light" ? (
-              <Moon className="h-5 w-5" />
-            ) : (
-              <Sun className="h-5 w-5" />
-            )}
+            {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
           </Button>
 
           {/* 🔔 Notificações */}
@@ -158,17 +149,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <div
                     key={idx}
                     className={`flex items-start gap-3 p-2 rounded-lg ${
-                      item.highlight
-                        ? "bg-muted font-semibold"
-                        : "hover:bg-muted/60"
+                      item.highlight ? "bg-muted font-semibold" : "hover:bg-muted/60"
                     }`}
                   >
                     <item.icon className="h-5 w-5 text-primary mt-1" />
                     <div>
                       <p className="text-sm font-medium">{item.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.description}
-                      </p>
+                      <p className="text-xs text-muted-foreground">{item.description}</p>
                     </div>
                   </div>
                 ))}
@@ -203,14 +190,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* 🔹 Conteúdo principal */}
       <div className="flex flex-1 w-full overflow-x-hidden">
-        <DashboardSidebar
-          className="hidden md:block flex-shrink-0"
-          isMobile={false}
-        />
-        <main
-          className="flex-1 p-4 md:p-6 max-w-full"
-          style={{ paddingBottom: FOOTER_HEIGHT }}
-        >
+        <DashboardSidebar className="hidden md:block flex-shrink-0" isMobile={false} />
+        <main className="flex-1 p-4 md:p-6 max-w-full" style={{ paddingBottom: FOOTER_HEIGHT }}>
           {children}
         </main>
       </div>
@@ -245,9 +226,22 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </SheetTrigger>
                 <SheetContent
                   side="left"
-                  className="pr-0 animate-slide-in-left w-[80vw] max-w-[280px]"
+                  className="pr-0 animate-slide-in-left w-[80vw] max-w-[280px] flex flex-col justify-between"
                 >
                   <DashboardSidebar isMobile={true} />
+
+                  {/* 🔹 Sessão do usuário mobile */}
+                  <div className="border-t p-4">
+                    <p className="text-sm font-medium truncate">{userEmail ?? "Carregando..."}</p>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="w-full mt-2"
+                      onClick={handleLogout}
+                    >
+                      Sair
+                    </Button>
+                  </div>
                 </SheetContent>
               </Sheet>
             )
