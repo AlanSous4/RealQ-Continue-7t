@@ -77,6 +77,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     { title: "Menu", href: "#", icon: Menu },
   ]
 
+  
+
   const FOOTER_HEIGHT = 80
 
   const notifications = [
