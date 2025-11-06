@@ -9,7 +9,7 @@ export type Json =
   | { [key: string]: Json }
   | Json[]
 
-// 🔹 Tipo para campos de timestamp
+// 🔹 Tipo para timestamps
 interface Timestamps {
   created_at?: string
   updated_at?: string
@@ -33,7 +33,7 @@ interface BaseUpdate {
 }
 
 // -------------------------------------------------
-// 🔹 Interface principal do schema do banco
+// 🔹 SCHEMA PRINCIPAL DO BANCO
 // -------------------------------------------------
 export interface Database {
   public: {
@@ -64,18 +64,21 @@ export interface Database {
       products: {
         Row: WithId & {
           name: string
-          description: string
+          description: string | null
           category_id: string
+          user_id: string              // ✅ Campo do usuário autenticado
         } & Timestamps
         Insert: BaseInsert & {
           name: string
-          description?: string
+          description?: string | null
           category_id: string
+          user_id: string              // ✅ Campo obrigatório no insert
         }
         Update: BaseUpdate & {
           name?: string
-          description?: string
+          description?: string | null
           category_id?: string
+          user_id?: string
         }
       }
 
@@ -249,25 +252,25 @@ export interface Database {
       // ---------------- ACTION PLANS ----------------
       action_plans: {
         Row: WithId & {
-          inspection_id: string
+          non_conformity_id: string | null // 🔹 Corrigido conforme Supabase
           description: string
           status: string
-          due_date: string
-          created_by: string
+          due_date: string | null
+          responsible: string | null
         } & Timestamps
         Insert: BaseInsert & {
-          inspection_id: string
+          non_conformity_id?: string | null
           description: string
           status?: string
-          due_date: string
-          created_by: string
+          due_date?: string | null
+          responsible?: string | null
         }
         Update: BaseUpdate & {
-          inspection_id?: string
+          non_conformity_id?: string | null
           description?: string
           status?: string
-          due_date?: string
-          created_by?: string
+          due_date?: string | null
+          responsible?: string | null
         }
       }
 
@@ -277,19 +280,25 @@ export interface Database {
           inspection_id: string
           description: string
           severity: string
-          created_by: string
+          category: string | null
+          impact: string | null
+          status: string
         } & Timestamps
         Insert: BaseInsert & {
           inspection_id: string
           description: string
           severity?: string
-          created_by: string
+          category?: string | null
+          impact?: string | null
+          status?: string
         }
         Update: BaseUpdate & {
           inspection_id?: string
           description?: string
           severity?: string
-          created_by?: string
+          category?: string | null
+          impact?: string | null
+          status?: string
         }
       }
     }

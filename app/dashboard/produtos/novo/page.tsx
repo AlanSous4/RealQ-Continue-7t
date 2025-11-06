@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -53,7 +51,7 @@ export default function NewProductPage() {
       try {
         setIsLoading(true)
         const categoriesData: Category[] = await getCategories()
-        setCategories(categoriesData)
+        setCategories(categoriesData || [])
       } catch (error) {
         console.error("Erro ao carregar categorias:", error)
         toast({
@@ -90,7 +88,12 @@ export default function NewProductPage() {
 
     try {
       setIsCreatingCategory(true)
-      const newCategory: Category = await createCategory(newCategoryName)
+
+      const newCategory = await createCategory(newCategoryName)
+
+      if (!newCategory || !newCategory.id) {
+        throw new Error("Categoria criada, mas resposta inválida do servidor.")
+      }
 
       // Atualiza lista de categorias e seleciona a nova criada
       setCategories((prev) => [...prev, newCategory])
@@ -106,7 +109,7 @@ export default function NewProductPage() {
       console.error("Erro ao criar categoria:", error)
       toast({
         title: "Erro ao criar categoria",
-        description: error instanceof Error ? error.message : "Ocorreu um erro ao criar a categoria. Tente novamente.",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao criar a categoria.",
         variant: "destructive",
       })
     } finally {
@@ -119,11 +122,12 @@ export default function NewProductPage() {
     setIsSubmitting(true)
 
     try {
-      // Salvar no Supabase
+      if (!formData.categoryId) throw new Error("Selecione uma categoria para o produto.")
+
       await createProduct({
-        name: formData.name,
-        description: formData.description,
-        category_id: formData.categoryId,
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        category_id: formData.categoryId, // confirme se o campo do banco é esse nome
       })
 
       toast({
@@ -131,13 +135,12 @@ export default function NewProductPage() {
         description: "O produto foi criado com sucesso.",
       })
 
-      // Redireciona para lista de produtos
       router.push("/dashboard/produtos")
     } catch (error) {
       console.error("Erro ao criar produto:", error)
       toast({
         title: "Erro ao criar produto",
-        description: error instanceof Error ? error.message : "Ocorreu um erro ao criar o produto. Tente novamente.",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao criar o produto.",
         variant: "destructive",
       })
     } finally {
@@ -154,31 +157,13 @@ export default function NewProductPage() {
           </Button>
           <Skeleton className="h-10 w-[250px]" />
         </div>
-
         <Card>
           <CardHeader>
             <Skeleton className="h-8 w-[200px]" />
             <Skeleton className="h-4 w-[300px]" />
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Skeleton className="h-5 w-[100px]" />
-                <Skeleton className="h-10 w-full" />
-              </div>
-              <div className="space-y-2">
-                <Skeleton className="h-5 w-[100px]" />
-                <Skeleton className="h-32 w-full" />
-              </div>
-              <div className="space-y-2">
-                <Skeleton className="h-5 w-[100px]" />
-                <Skeleton className="h-10 w-full" />
-              </div>
-              <div className="flex gap-4">
-                <Skeleton className="h-10 w-[120px]" />
-                <Skeleton className="h-10 w-[120px]" />
-              </div>
-            </div>
+            <Skeleton className="h-10 w-full" />
           </CardContent>
         </Card>
       </div>
@@ -269,6 +254,7 @@ export default function NewProductPage() {
                     </DialogContent>
                   </Dialog>
                 </div>
+
                 <Select
                   value={formData.categoryId}
                   onValueChange={(value) => handleSelectChange("categoryId", value)}
@@ -295,7 +281,7 @@ export default function NewProductPage() {
             </div>
 
             <div className="flex gap-4">
-              <Button type="submit" disabled={isSubmitting || !formData.categoryId || categories.length === 0}>
+              <Button type="submit" disabled={isSubmitting || !formData.categoryId}>
                 {isSubmitting ? "Salvando..." : "Salvar Produto"}
               </Button>
               <Button type="button" variant="outline" asChild>
