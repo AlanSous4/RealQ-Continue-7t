@@ -46,8 +46,8 @@ export default function UsersPage() {
       try {
         setIsLoading(true);
         const data = await getAllUsers();
-        setUsers(data);
-        setFilteredUsers(data);
+        setUsers(data ?? []);
+        setFilteredUsers(data ?? []);
       } catch (error) {
         console.error("Erro ao carregar usuários:", error);
         toast({
@@ -83,19 +83,23 @@ export default function UsersPage() {
     }
   }, [searchQuery, users]);
 
-  // Inicial do avatar
-  const getInitials = (name: string) =>
-    name
-      .split(" ")
-      .map((n) => n[0])
+  // Inicial do avatar (seguro contra null/empty)
+  const getInitials = (name?: string | null) => {
+    if (!name || name.trim() === "") return "??";
+    return name
+      .trim()
+      .split(/\s+/)
+      .map((n) => n[0] ?? "")
       .join("")
       .toUpperCase()
       .substring(0, 2);
+  };
 
   // Formatar data
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string | null) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "-";
     return new Intl.DateTimeFormat("pt-BR", {
       day: "2-digit",
       month: "2-digit",
@@ -106,7 +110,7 @@ export default function UsersPage() {
   // Deletar usuário
   const handleDeleteUser = async (user: User) => {
     if (!user.id) return;
-    const confirmed = confirm(`Deseja realmente excluir ${user.name}?`);
+    const confirmed = confirm(`Deseja realmente excluir ${user.name ?? "este usuário"}?`);
     if (!confirmed) return;
 
     const { error } = await supabaseClient
@@ -123,7 +127,7 @@ export default function UsersPage() {
     } else {
       toast({
         title: "Usuário excluído",
-        description: `${user.name} foi removido com sucesso.`,
+        description: `${user.name ?? "Usuário"} foi removido com sucesso.`,
       });
       // Atualiza lista no frontend
       setUsers((prev) => prev.filter((u) => u.id !== user.id));
@@ -194,7 +198,7 @@ export default function UsersPage() {
                         {user.profile_image ? (
                           <AvatarImage
                             src={user.profile_image}
-                            alt={user.name}
+                            alt={user.name ?? "Usuário"}
                           />
                         ) : (
                           <AvatarFallback>
@@ -202,7 +206,7 @@ export default function UsersPage() {
                           </AvatarFallback>
                         )}
                       </Avatar>
-                      <span>{user.name}</span>
+                      <span>{user.name ?? "—"}</span>
                     </div>
                   </TableCell>
                   <TableCell>

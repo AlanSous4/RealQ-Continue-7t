@@ -33,6 +33,7 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false) // evita hydratation mismatch
   const [menuOpen, setMenuOpen] = useState(false)
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [mobileNotificationsOpen, setMobileNotificationsOpen] = useState(false)
@@ -40,17 +41,45 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const notificationsRef = useRef<HTMLDivElement>(null)
   const mobileUserRef = useRef<HTMLDivElement>(null)
 
+  // montado no cliente — necessário para theme toggle e evitar hydration mismatch
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession()
-      if (error) { console.error(error); return }
-      if (!session) { window.location.href = "/login"; return }
-      setUserEmail(session.user.email ?? null)
-      const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (session?.user) { setUserEmail(session.user.email ?? null) }
-        else { window.location.href = "/login" }
-      })
-      return () => { listener.subscription.unsubscribe() }
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        if (error) {
+          console.error("[Auth] Erro ao obter sessão:", error)
+          return
+        }
+        if (!session) {
+          // não autenticado
+          window.location.href = "/login"
+          return
+        }
+        setUserEmail(session.user.email ?? null)
+
+        const { data: listener } = await supabase.auth.onAuthStateChange((_event, session) => {
+          if (session?.user) {
+            setUserEmail(session.user.email ?? null)
+          } else {
+            window.location.href = "/login"
+          }
+        })
+
+        // cleanup
+        return () => {
+          try {
+            listener.subscription.unsubscribe()
+          } catch (err) {
+            // ignore
+          }
+        }
+      } catch (err) {
+        console.error("[Auth] checkUser error:", err)
+      }
     }
     checkUser()
   }, [])
@@ -77,8 +106,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     { title: "Menu", href: "#", icon: Menu },
   ]
 
-  
-
   const FOOTER_HEIGHT = 80
 
   const notifications = [
@@ -90,8 +117,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   ]
 
   async function handleLogout() {
-    await supabase.auth.signOut()
-    window.location.href = "/login"
+    try {
+      await supabase.auth.signOut()
+    } catch (err) {
+      console.error("Erro ao deslogar:", err)
+    } finally {
+      window.location.href = "/login"
+    }
   }
 
   return (
@@ -100,45 +132,46 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <header className="hidden md:flex items-center justify-between px-6 py-3 border-b bg-background sticky top-0 z-50">
         <h1 className="text-lg font-semibold tracking-tight">Painel de Controle</h1>
         <div className="flex items-center gap-4">
-          {/* Botão Tema */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-            aria-label="Alternar tema"
-          >
-            {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-          </Button>
+          {/* Botão Tema — só renderiza após mounted para evitar hydration mismatch */}
+          {mounted && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+              aria-label="Alternar tema"
+            >
+              {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+            </Button>
+          )}
 
           {/* 🔔 Notificações Desktop com animação */}
-<Popover>
-  <PopoverTrigger asChild>
-    <Button variant="ghost" size="icon" aria-label="Notificações">
-      <Bell className="h-5 w-5" />
-    </Button>
-  </PopoverTrigger>
-  <PopoverContent
-    className="w-80 origin-top-right animate-slide-down-fade"
-    side="bottom"
-    align="end"
-  >
-    <div className="space-y-3">
-      {notifications.map((item, idx) => (
-        <div
-          key={idx}
-          className={`flex items-start gap-3 p-2 rounded-lg ${item.highlight ? "bg-muted font-semibold" : "hover:bg-muted/60"}`}
-        >
-          <item.icon className="h-5 w-5 text-primary mt-1" />
-          <div>
-            <p className="text-sm font-medium">{item.title}</p>
-            <p className="text-xs text-muted-foreground">{item.description}</p>
-          </div>
-        </div>
-      ))}
-    </div>
-  </PopoverContent>
-</Popover>
-
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="Notificações">
+                <Bell className="h-5 w-5" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-80 origin-top-right animate-slide-down-fade"
+              side="bottom"
+              align="end"
+            >
+              <div className="space-y-3">
+                {notifications.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex items-start gap-3 p-2 rounded-lg ${item.highlight ? "bg-muted font-semibold" : "hover:bg-muted/60"}`}
+                  >
+                    <item.icon className="h-5 w-5 text-primary mt-1" />
+                    <div>
+                      <p className="text-sm font-medium">{item.title}</p>
+                      <p className="text-xs text-muted-foreground">{item.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
 
           {/* 🔹 Usuário Desktop */}
           <Popover>
@@ -184,14 +217,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-            aria-label="Alternar tema"
-          >
-            {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-          </Button>
+          {mounted && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+              aria-label="Alternar tema"
+            >
+              {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+            </Button>
+          )}
 
           <Button
             variant="ghost"
