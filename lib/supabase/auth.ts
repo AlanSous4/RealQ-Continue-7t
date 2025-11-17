@@ -1,9 +1,16 @@
 import type { Provider } from "@supabase/supabase-js";
 import { getSupabaseClient } from "./client";
+import type { Database } from "../database.types";
 
-// Re-export the client for convenience
+// Re-export client
 export const supabaseClient = getSupabaseClient();
 
+// Tipo correto vindo direto do Supabase
+type UserInsert = Database["public"]["Tables"]["users"]["Insert"];
+
+// -----------------------------
+// Types
+// -----------------------------
 export type AuthFormData = {
   email: string;
   password: string;
@@ -12,106 +19,81 @@ export type AuthFormData = {
   userType?: string;
 };
 
-// Definição do tipo para inserção na tabela "users"
-type UserInsert = {
-  id: string;
-  email: string;
-  name: string;
-  phone: string;
-  user_type: string;
-  created_at?: string;
-};
-
+// -----------------------------
+// SIGN UP
+// -----------------------------
 export async function signUp(formData: AuthFormData) {
-  console.log("[Auth] Attempting to sign up user", { email: formData.email });
+  console.log("[Auth] Attempting to SIGN UP", {
+    email: formData.email,
+    name: formData.name,
+  });
+
   const { email, password, name, phone, userType } = formData;
 
   try {
-    // 1️⃣ Cria o usuário na autenticação Supabase
-    const { data, error } = await supabaseClient.auth.signUp({
+    // 1️⃣ Criar usuário no Auth
+    const { data: authData, error: authError } = await supabaseClient.auth.signUp({
       email,
       password,
-      options: {
-        data: {
-          name,
-          phone,
-          user_type: userType,
-        },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
     });
 
-    if (error) {
-      console.error("[Auth] Sign up error:", error);
-      throw new Error(`Authentication error: ${error.message}`);
+    let userId = authData?.user?.id ?? null;
+
+    // 2️⃣ Se já existe → login automático
+    if (authError?.message === "User already registered") {
+      console.warn("[Auth] User exists — logging in…");
+
+      const { data: loginData, error: loginError } =
+        await supabaseClient.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+      if (loginError) throw new Error(loginError.message);
+      userId = loginData.user?.id ?? null;
+    } else if (authError) {
+      throw new Error(authError.message);
     }
 
-    if (!data.user) {
-      throw new Error("User creation failed - no user data returned");
+    if (!userId) throw new Error("Could not determine user ID");
+
+    console.log("[Auth] Auth user ready:", userId);
+
+    // 3️⃣ Upsert no perfil
+    const profile: UserInsert = {
+      auth_id: userId,
+      email,
+      name: name || "",
+      phone: phone || "",
+      user_type: userType || "quality-user",
+    };
+
+    const { error: upsertError } = await supabaseClient
+      .from("users")
+      .upsert(profile, { onConflict: "auth_id" });
+
+    if (upsertError) {
+      console.error("[Auth] Profile upsert error:", upsertError);
+      throw new Error(upsertError.message);
     }
 
-    console.log("[Auth] User signed up successfully", { userId: data.user.id });
+    console.log("[Auth] Profile saved successfully");
 
-    // 2️⃣ Verifica se a tabela "users" existe
-    try {
-      const { error: tableCheckError } = await supabaseClient
-        .from("users")
-        .select("id")
-        .limit(1);
-
-      if (tableCheckError && tableCheckError.code === "42P01") {
-        console.log(
-          "[Auth] Users table does not exist. User will be created by trigger when the table is created."
-        );
-        return data;
-      }
-    } catch (error) {
-      console.error("[Auth] Error checking users table:", error);
-    }
-
-    // 3️⃣ Cria o perfil do usuário na tabela "users"
-    try {
-      console.log("[Auth] Creating user profile in users table");
-
-      const newUser: UserInsert = {
-        id: data.user.id,
-        email,
-        name: name || "",
-        phone: phone || "",
-        user_type: userType || "quality-user",
-        created_at: new Date().toISOString(),
-      };
-
-      const { error: profileError } = await supabaseClient
-        .from("users")
-        .insert(newUser as any);
-
-      if (profileError) {
-        if (profileError.code === "23505") {
-          console.log("[Auth] User already exists in users table");
-        } else {
-          console.error("[Auth] Error creating user profile:", profileError);
-        }
-      } else {
-        console.log("[Auth] User profile created successfully");
-      }
-    } catch (error) {
-      console.error("[Auth] Error inserting into users table:", error);
-    }
-
-    return data;
+    return { user: { id: userId } };
   } catch (error) {
-    console.error("[Auth] Unexpected error during sign up:", error);
-    throw new Error(
-      error instanceof Error
-        ? `Database error saving new user: ${error.message}`
-        : "Database error saving new user"
-    );
+    console.error("[Auth] SIGNUP fatal error:", error);
+    throw new Error(error instanceof Error ? error.message : "Unknown signup error");
   }
 }
 
+// -----------------------------
+// SIGN IN
+// -----------------------------
 export async function signIn(formData: AuthFormData) {
-  console.log("[Auth] Attempting to sign in user", { email: formData.email });
+  console.log("[Auth] Attempting to SIGN IN", {
+    email: formData.email,
+  });
+
   const { email, password } = formData;
 
   try {
@@ -120,271 +102,120 @@ export async function signIn(formData: AuthFormData) {
       password,
     });
 
-    if (error) {
-      console.error("[Auth] Sign in error:", error);
-      throw new Error(error.message);
-    }
+    if (error) throw new Error(error.message);
+    if (!data.user) return data;
 
-    console.log("[Auth] User signed in successfully", {
-      userId: data.user?.id,
-    });
+    const userId = data.user.id;
 
-    // Verifica se a tabela "users" existe
-    try {
-      const { error: tableCheckError } = await supabaseClient
+    console.log("[Auth] Signed in:", userId);
+
+    // 1️⃣ Verificar se perfil existe
+    const { data: profileExists } = await supabaseClient
+      .from("users")
+      .select("auth_id")
+      .eq("auth_id", userId)
+      .maybeSingle();
+
+    // 2️⃣ Criar perfil caso não exista
+    if (!profileExists) {
+      console.log("[Auth] Creating missing profile…");
+
+      const meta = data.user.user_metadata;
+
+      const newUser: UserInsert = {
+        auth_id: userId,
+        email: data.user.email ?? "",
+        name: meta?.name || data.user.email?.split("@")[0] || "Usuário",
+        phone: meta?.phone || "",
+        user_type: meta?.user_type || "quality-user",
+      };
+
+      const { error: upsertError } = await supabaseClient
         .from("users")
-        .select("id")
-        .limit(1);
+        .upsert(newUser, { onConflict: "auth_id" });
 
-      if (tableCheckError) {
-        console.error("[Auth] Table check error:", tableCheckError);
-        if (tableCheckError.code === "42P01") {
-          console.log(
-            "[Auth] Users table does not exist. User will be created by trigger when the table is created."
-          );
-          return data;
-        }
-        throw tableCheckError;
+      if (upsertError) {
+        console.error("[Auth] Error creating missing profile:", upsertError);
+      } else {
+        console.log("[Auth] Missing profile created");
       }
-
-      // Verifica se o usuário já existe na tabela "users"
-      if (data.user) {
-        const { data: userExists, error: userCheckError } = await supabaseClient
-          .from("users")
-          .select("id")
-          .eq("id", data.user.id)
-          .maybeSingle();
-
-        if (userCheckError) {
-          console.error(
-            "[Auth] Error checking if user exists:",
-            userCheckError
-          );
-        }
-
-        // Se não existir, cria o registro
-        if (!userExists && !userCheckError) {
-          console.log("[Auth] User not found in users table, creating profile");
-
-          const newUser: UserInsert = {
-            id: data.user.id,
-            email: data.user.email || "",
-            name:
-              data.user.user_metadata.name ||
-              data.user.email?.split("@")[0] ||
-              "Usuário",
-            phone: data.user.user_metadata.phone || "",
-            user_type: data.user.user_metadata.user_type || "quality-user",
-            created_at: new Date().toISOString(),
-          };
-
-          const { error: createError } = await supabaseClient
-            .from("users")
-            .insert(newUser as any);
-
-          if (createError) {
-            if (createError.code === "23505") {
-              console.log("[Auth] User already exists in users table");
-            } else {
-              console.error("[Auth] Error creating user profile:", createError);
-            }
-          } else {
-            console.log("[Auth] User profile created successfully");
-          }
-        } else {
-          console.log("[Auth] User already exists in users table");
-        }
-      }
-    } catch (err) {
-      console.error("[Auth] Error checking or creating user:", err);
     }
 
     return data;
-  } catch (error) {
-    console.error("[Auth] Unexpected error during sign in:", error);
-    throw error;
+  } catch (err) {
+    console.error("[Auth] Unexpected SIGN IN error:", err);
+    throw err;
   }
 }
 
+// -----------------------------
+// PROVIDERS
+// -----------------------------
 export async function signInWithProvider(provider: Provider) {
-  console.log("[Auth] Attempting to sign in with provider", { provider });
+  console.log("[Auth] Signing in with provider", { provider });
 
-  try {
-    const { data, error } = await supabaseClient.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
+  const { data, error } = await supabaseClient.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`,
+    },
+  });
 
-    if (error) {
-      console.error("[Auth] Provider sign in error:", error);
-      throw new Error(error.message);
-    }
-
-    console.log("[Auth] Provider sign in initiated successfully");
-    return data;
-  } catch (error) {
-    console.error("[Auth] Unexpected error during provider sign in:", error);
-    throw error;
-  }
+  if (error) throw new Error(error.message);
+  return data;
 }
 
+// -----------------------------
+// PASSWORD RECOVERY
+// -----------------------------
 export async function resetPassword(email: string) {
-  console.log("[Auth] Attempting to reset password", { email });
+  console.log("[Auth] Password reset for:", email);
 
-  try {
-    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/redefinir-senha`,
-    });
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/redefinir-senha`,
+  });
 
-    if (error) {
-      console.error("[Auth] Password reset error:", error);
-      throw new Error(error.message);
-    }
-
-    console.log("[Auth] Password reset email sent successfully");
-    return true;
-  } catch (error) {
-    console.error("[Auth] Unexpected error during password reset:", error);
-    throw error;
-  }
+  if (error) throw new Error(error.message);
+  return true;
 }
 
 export async function updatePassword(password: string) {
-  console.log("[Auth] Attempting to update password");
+  console.log("[Auth] Updating password…");
 
-  try {
-    const { error } = await supabaseClient.auth.updateUser({
-      password,
-    });
+  const { error } = await supabaseClient.auth.updateUser({ password });
+  if (error) throw new Error(error.message);
 
-    if (error) {
-      console.error("[Auth] Password update error:", error);
-      throw new Error(error.message);
-    }
-
-    console.log("[Auth] Password updated successfully");
-    return true;
-  } catch (error) {
-    console.error("[Auth] Unexpected error during password update:", error);
-    throw error;
-  }
+  return true;
 }
 
+// -----------------------------
+// SESSION / SIGN OUT
+// -----------------------------
 export async function signOut() {
-  console.log("[Auth] Attempting to sign out user");
+  console.log("[Auth] Signing out…");
+
+  const { error } = await supabaseClient.auth.signOut();
+  if (error) throw new Error(error.message);
 
   try {
-    const { error } = await supabaseClient.auth.signOut();
+    localStorage.removeItem("supabase.auth.token");
+  } catch {}
 
-    if (error) {
-      console.error("[Auth] Sign out error:", error);
-      throw new Error(error.message);
-    }
-
-    console.log("[Auth] User signed out successfully");
-
-    try {
-      localStorage.removeItem("supabase.auth.token");
-    } catch (e) {
-      console.log("[Auth] No localStorage available");
-    }
-
-    return true;
-  } catch (error) {
-    console.error("[Auth] Unexpected error during sign out:", error);
-    throw error;
-  }
+  return true;
 }
 
 export async function getCurrentUser() {
-  console.log("[Auth] Attempting to get current user");
+  const { data, error } = await supabaseClient.auth.getSession();
+  if (error) throw new Error(error.message);
 
-  try {
-    const {
-      data: { session },
-      error,
-    } = await supabaseClient.auth.getSession();
-
-    if (error) {
-      console.error("[Auth] Get session error:", error);
-      throw new Error(error.message);
-    }
-
-    console.log("[Auth] Session retrieved", {
-      exists: !!session,
-      userId: session?.user?.id,
-    });
-    return session?.user || null;
-  } catch (error) {
-    console.error("[Auth] Unexpected error getting current user:", error);
-    throw error;
-  }
+  return data.session?.user ?? null;
 }
 
 export async function checkSession() {
-  console.log("[Auth] Checking session validity");
-
   try {
-    const { data: sessionData, error: sessionError } =
-      await supabaseClient.auth.getSession();
-
-    if (sessionError) {
-      console.log(
-        "[Auth] Session error (this is normal if user is not logged in):",
-        sessionError.message
-      );
-      return false;
-    }
-
-    const session = sessionData?.session;
-
-    if (!session) {
-      console.log("[Auth] No session found (user is not logged in)");
-      return false;
-    }
-
-    const { data: userData, error: userError } =
-      await supabaseClient.auth.getUser();
-
-    if (userError) {
-      console.log("[Auth] User verification error:", userError.message);
-      return false;
-    }
-
-    const user = userData?.user;
-    const isValid = !!session && !!user;
-
-    console.log("[Auth] Session check complete", {
-      isValid,
-      hasSession: !!session,
-      hasUser: !!user,
-      userId: user?.id,
-      sessionExpiry: session?.expires_at
-        ? new Date(session.expires_at * 1000).toISOString()
-        : "unknown",
-    });
-
-    if (session && session.expires_at) {
-      const expiresInSeconds =
-        session.expires_at - Math.floor(Date.now() / 1000);
-      if (expiresInSeconds < 300) {
-        console.log("[Auth] Session expiring soon, refreshing");
-        try {
-          await supabaseClient.auth.refreshSession();
-        } catch (refreshError) {
-          console.log("[Auth] Session refresh failed:", refreshError);
-        }
-      }
-    }
-
-    return isValid;
-  } catch (error) {
-    console.log(
-      "[Auth] Unexpected error checking session (this is normal if user is not logged in):",
-      error
-    );
+    const { data } = await supabaseClient.auth.getSession();
+    return !!data.session;
+  } catch {
     return false;
   }
 }

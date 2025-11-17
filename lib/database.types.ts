@@ -1,6 +1,5 @@
 // /lib/database.types.ts
 
-// 🔹 Tipo genérico para JSON
 export type Json =
   | string
   | number
@@ -9,18 +8,15 @@ export type Json =
   | { [key: string]: Json }
   | Json[]
 
-// 🔹 Tipo para timestamps
 interface Timestamps {
   created_at?: string
   updated_at?: string
 }
 
-// 🔹 Tipo genérico para entidades com ID
 interface WithId {
   id: string
 }
 
-// 🔹 Tipos base para Insert e Update
 interface BaseInsert {
   id?: string
   created_at?: string
@@ -33,32 +29,44 @@ interface BaseUpdate {
 }
 
 // -------------------------------------------------
-// 🔹 SCHEMA PRINCIPAL DO BANCO
+//  SCHEMA COMPLETO — AGORA COMPATÍVEL COM SUPABASE
 // -------------------------------------------------
 export interface Database {
   public: {
     Tables: {
+
       // ---------------- USERS ----------------
       users: {
         Row: WithId & {
-          email: string
-          name: string
-          phone: string
-          user_type: string
+          email: string | null
+          name: string | null
+          phone: string | null
+          user_type: string | null
+          auth_id: string | null
         } & Timestamps
-        Insert: BaseInsert & {
-          email: string
-          name?: string
-          phone?: string
-          user_type?: string
-        }
-        Update: BaseUpdate & {
+
+        Insert: {
+          id?: string
           email?: string
           name?: string
           phone?: string
           user_type?: string
+          auth_id?: string
+          created_at?: string
+          updated_at?: string
         }
-      }
+
+        Update: {
+          id?: string
+          email?: string
+          name?: string
+          phone?: string
+          user_type?: string
+          auth_id?: string
+          created_at?: string
+          updated_at?: string
+        }
+      },
 
       // ---------------- PRODUCTS ----------------
       products: {
@@ -66,21 +74,23 @@ export interface Database {
           name: string
           description: string | null
           category_id: string
-          user_id: string              // ✅ Campo do usuário autenticado
+          user_id: string
         } & Timestamps
+
         Insert: BaseInsert & {
           name: string
           description?: string | null
           category_id: string
-          user_id: string              // ✅ Campo obrigatório no insert
+          user_id: string
         }
+
         Update: BaseUpdate & {
           name?: string
           description?: string | null
           category_id?: string
           user_id?: string
         }
-      }
+      },
 
       // ---------------- CATEGORIES ----------------
       categories: {
@@ -88,15 +98,17 @@ export interface Database {
           name: string
           user_id: string | null
         } & Timestamps
+
         Insert: BaseInsert & {
           name: string
           user_id?: string | null
         }
+
         Update: BaseUpdate & {
           name?: string
           user_id?: string | null
         }
-      }
+      },
 
       // ---------------- REVENDORES ----------------
       revendedores: {
@@ -106,19 +118,21 @@ export interface Database {
           telefone: string
           cidade: string
         } & Timestamps
+
         Insert: BaseInsert & {
           nome: string
           email: string
           telefone: string
           cidade: string
         }
+
         Update: BaseUpdate & {
           nome?: string
           email?: string
           telefone?: string
           cidade?: string
         }
-      }
+      },
 
       // ---------------- INSPECTIONS ----------------
       inspections: {
@@ -131,6 +145,7 @@ export interface Database {
           status: string
           created_by: string
         } & Timestamps
+
         Insert: BaseInsert & {
           product_id: string
           batch: string
@@ -140,6 +155,7 @@ export interface Database {
           status?: string
           created_by: string
         }
+
         Update: BaseUpdate & {
           product_id?: string
           batch?: string
@@ -149,7 +165,7 @@ export interface Database {
           status?: string
           created_by?: string
         }
-      }
+      },
 
       // ---------------- INSPECTION DETAILS ----------------
       inspection_details: {
@@ -159,19 +175,21 @@ export interface Database {
           result: string
           notes: string
         } & Timestamps
+
         Insert: BaseInsert & {
           inspection_id: string
           test_id: string
           result: string
           notes?: string
         }
+
         Update: BaseUpdate & {
           inspection_id?: string
           test_id?: string
           result?: string
           notes?: string
         }
-      }
+      },
 
       // ---------------- TESTS ----------------
       tests: {
@@ -179,15 +197,17 @@ export interface Database {
           name: string
           description: string
         } & Timestamps
+
         Insert: BaseInsert & {
           name: string
           description?: string
         }
+
         Update: BaseUpdate & {
           name?: string
           description?: string
         }
-      }
+      },
 
       // ---------------- TOOLS ----------------
       tools: {
@@ -195,15 +215,17 @@ export interface Database {
           name: string
           description: string
         } & Timestamps
+
         Insert: BaseInsert & {
           name: string
           description?: string
         }
+
         Update: BaseUpdate & {
           name?: string
           description?: string
         }
-      }
+      },
 
       // ---------------- SUPPLIERS ----------------
       suppliers: {
@@ -213,19 +235,21 @@ export interface Database {
           email: string
           phone: string
         } & Timestamps
+
         Insert: BaseInsert & {
           name: string
           contact?: string
           email: string
           phone?: string
         }
+
         Update: BaseUpdate & {
           name?: string
           contact?: string
           email?: string
           phone?: string
         }
-      }
+      },
 
       // ---------------- MANUFACTURERS ----------------
       manufacturers: {
@@ -235,29 +259,32 @@ export interface Database {
           email: string
           phone: string
         } & Timestamps
+
         Insert: BaseInsert & {
           name: string
           contact?: string
           email: string
           phone?: string
         }
+
         Update: BaseUpdate & {
           name?: string
           contact?: string
           email?: string
           phone?: string
         }
-      }
+      },
 
       // ---------------- ACTION PLANS ----------------
       action_plans: {
         Row: WithId & {
-          non_conformity_id: string | null // 🔹 Corrigido conforme Supabase
+          non_conformity_id: string | null
           description: string
           status: string
           due_date: string | null
           responsible: string | null
         } & Timestamps
+
         Insert: BaseInsert & {
           non_conformity_id?: string | null
           description: string
@@ -265,6 +292,7 @@ export interface Database {
           due_date?: string | null
           responsible?: string | null
         }
+
         Update: BaseUpdate & {
           non_conformity_id?: string | null
           description?: string
@@ -272,7 +300,7 @@ export interface Database {
           due_date?: string | null
           responsible?: string | null
         }
-      }
+      },
 
       // ---------------- NON CONFORMITIES ----------------
       non_conformities: {
@@ -284,6 +312,7 @@ export interface Database {
           impact: string | null
           status: string
         } & Timestamps
+
         Insert: BaseInsert & {
           inspection_id: string
           description: string
@@ -292,6 +321,7 @@ export interface Database {
           impact?: string | null
           status?: string
         }
+
         Update: BaseUpdate & {
           inspection_id?: string
           description?: string
@@ -301,6 +331,11 @@ export interface Database {
           status?: string
         }
       }
-    }
+    },
+
+    Views: {},
+    Functions: {},
+    Enums: {},
+    CompositeTypes: {}
   }
 }
