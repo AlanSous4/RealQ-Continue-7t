@@ -1,5 +1,3 @@
-// /lib/database.types.ts
-
 export type Json =
   | string
   | number
@@ -8,131 +6,87 @@ export type Json =
   | { [key: string]: Json }
   | Json[]
 
-// ---------------------------------------------
-// Types gerados manualmente conforme seu schema
-// ---------------------------------------------
+// =====================
+// SCHEMA CORRIGIDO
+// =====================
+
 export interface Database {
   public: {
     Tables: {
 
-      // ---------------- USERS ----------------
+      // ------------ USERS ------------
       users: {
         Row: {
           id: string
-          email: string | null
-          name: string | null
-          phone: string | null
-          user_type: string | null
-          auth_id: string | null
+          email: string
+          name: string
+          phone: string
+          user_type: string
           created_at: string
         }
-
         Insert: {
           id?: string
-          email?: string | null
-          name?: string | null
-          phone?: string | null
-          user_type?: string | null
-          auth_id?: string | null
+          email: string
+          name: string
+          phone?: string
+          user_type?: string
           created_at?: string
         }
-
         Update: {
           id?: string
-          email?: string | null
-          name?: string | null
-          phone?: string | null
-          user_type?: string | null
-          auth_id?: string | null
+          email?: string
+          name?: string
+          phone?: string
+          user_type?: string
           created_at?: string
         }
-      },
+      }
 
-      // ---------------- PRODUCTS ----------------
+      // ------------ PRODUCTS ------------
       products: {
         Row: {
           id: string
           name: string
-          description: string | null
+          description: string
           category_id: string
           created_at: string
-          user_id: string | null
         }
-      
         Insert: {
           id?: string
           name: string
-          description?: string | null
+          description?: string
           category_id: string
           created_at?: string
-          user_id?: string | null
         }
-      
         Update: {
           id?: string
           name?: string
-          description?: string | null
+          description?: string
           category_id?: string
           created_at?: string
-          user_id?: string | null
         }
-      },
+      }
 
-      // ---------------- CATEGORIES ----------------
+      // ------------ CATEGORIES ------------
       categories: {
         Row: {
           id: string
           name: string
           created_at: string
-          user_id: string | null
         }
-      
         Insert: {
           id?: string
           name: string
           created_at?: string
-          user_id?: string | null
         }
-      
         Update: {
           id?: string
           name?: string
           created_at?: string
-          user_id?: string | null
         }
-      },
+      }
 
-      // ---------------- REVENDORES ----------------
-      revendedores: {
-        Row: {
-          id: string
-          nome: string
-          email: string
-          telefone: string
-          cidade: string
-          created_at: string
-        }
-
-        Insert: {
-          id?: string
-          nome: string
-          email: string
-          telefone: string
-          cidade: string
-          created_at?: string
-        }
-
-        Update: {
-          id?: string
-          nome?: string
-          email?: string
-          telefone?: string
-          cidade?: string
-          created_at?: string
-        }
-      },
-
-      // ---------------- INSPECTIONS ----------------
+      // ------------ INSPECTIONS ------------
       inspections: {
         Row: {
           id: string
@@ -142,10 +96,9 @@ export interface Database {
           manufacturer_id: string
           expiry_date: string
           status: string
-          created_by: string
           created_at: string
+          created_by: string
         }
-
         Insert: {
           id?: string
           product_id: string
@@ -154,10 +107,9 @@ export interface Database {
           manufacturer_id: string
           expiry_date: string
           status?: string
-          created_by: string
           created_at?: string
+          created_by: string
         }
-
         Update: {
           id?: string
           product_id?: string
@@ -166,12 +118,12 @@ export interface Database {
           manufacturer_id?: string
           expiry_date?: string
           status?: string
-          created_by?: string
           created_at?: string
+          created_by?: string
         }
-      },
+      }
 
-      // ---------------- INSPECTION DETAILS ----------------
+      // ------------ INSPECTION DETAILS ------------
       inspection_details: {
         Row: {
           id: string
@@ -181,7 +133,6 @@ export interface Database {
           notes: string
           created_at: string
         }
-
         Insert: {
           id?: string
           inspection_id: string
@@ -190,7 +141,6 @@ export interface Database {
           notes?: string
           created_at?: string
         }
-
         Update: {
           id?: string
           inspection_id?: string
@@ -199,9 +149,9 @@ export interface Database {
           notes?: string
           created_at?: string
         }
-      },
+      }
 
-      // ---------------- TESTS ----------------
+      // ------------ TESTS ------------
       tests: {
         Row: {
           id: string
@@ -209,23 +159,21 @@ export interface Database {
           description: string
           created_at: string
         }
-
         Insert: {
           id?: string
           name: string
           description?: string
           created_at?: string
         }
-
         Update: {
           id?: string
           name?: string
           description?: string
           created_at?: string
         }
-      },
+      }
 
-      // ---------------- TOOLS ----------------
+      // ------------ TOOLS ------------
       tools: {
         Row: {
           id: string
@@ -233,23 +181,21 @@ export interface Database {
           description: string
           created_at: string
         }
-
         Insert: {
           id?: string
           name: string
           description?: string
           created_at?: string
         }
-
         Update: {
           id?: string
           name?: string
           description?: string
           created_at?: string
         }
-      },
+      }
 
-      // ---------------- SUPPLIERS ----------------
+      // ------------ SUPPLIERS ------------
       suppliers: {
         Row: {
           id: string
@@ -259,16 +205,14 @@ export interface Database {
           phone: string
           created_at: string
         }
-
         Insert: {
           id?: string
           name: string
           contact?: string
-          email: string
+          email?: string
           phone?: string
           created_at?: string
         }
-
         Update: {
           id?: string
           name?: string
@@ -277,9 +221,9 @@ export interface Database {
           phone?: string
           created_at?: string
         }
-      },
+      }
 
-      // ---------------- MANUFACTURERS ----------------
+      // ------------ MANUFACTURERS ------------
       manufacturers: {
         Row: {
           id: string
@@ -289,16 +233,14 @@ export interface Database {
           phone: string
           created_at: string
         }
-
         Insert: {
           id?: string
           name: string
           contact?: string
-          email: string
+          email?: string
           phone?: string
           created_at?: string
         }
-
         Update: {
           id?: string
           name?: string
@@ -307,81 +249,100 @@ export interface Database {
           phone?: string
           created_at?: string
         }
-      },
+      }
 
-      // ---------------- ACTION PLANS ----------------
+      // ------------ ACTION PLANS ------------
       action_plans: {
         Row: {
           id: string
-          non_conformity_id: string | null
+          inspection_id: string
           description: string
           status: string
-          due_date: string | null
-          responsible: string | null
+          due_date: string
           created_at: string
+          created_by: string
         }
-
         Insert: {
           id?: string
-          non_conformity_id?: string | null
+          inspection_id: string
           description: string
           status?: string
-          due_date?: string | null
-          responsible?: string | null
+          due_date: string
           created_at?: string
+          created_by: string
         }
-
         Update: {
           id?: string
-          non_conformity_id?: string | null
+          inspection_id?: string
           description?: string
           status?: string
-          due_date?: string | null
-          responsible?: string | null
+          due_date?: string
           created_at?: string
+          created_by?: string
         }
-      },
+      }
 
-      // ---------------- NON CONFORMITIES ----------------
+      // ------------ NON CONFORMITIES ------------
       non_conformities: {
         Row: {
           id: string
           inspection_id: string
           description: string
           severity: string
-          category: string | null
-          impact: string | null
-          status: string
           created_at: string
+          created_by: string
         }
-
         Insert: {
           id?: string
           inspection_id: string
           description: string
           severity?: string
-          category?: string | null
-          impact?: string | null
-          status?: string
           created_at?: string
+          created_by: string
         }
-
         Update: {
           id?: string
           inspection_id?: string
           description?: string
           severity?: string
-          category?: string | null
-          impact?: string | null
-          status?: string
+          created_at?: string
+          created_by?: string
+        }
+      },
+
+      // ------------ REVENDEDORES ------------
+      revendedores: {
+        Row: {
+          id: string
+          nome: string
+          email: string
+          telefone: string
+          cidade: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          nome: string
+          email: string
+          telefone: string
+          cidade: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          nome?: string
+          email?: string
+          telefone?: string
+          cidade?: string
           created_at?: string
         }
       }
-    },
 
-    Views: {},
-    Functions: {},
-    Enums: {},
-    CompositeTypes: {},
+    }
+
+    Views: {}
+    Functions: {}
+    Enums: {}
+    CompositeTypes: {}
   }
 }

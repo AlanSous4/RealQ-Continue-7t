@@ -16,10 +16,13 @@ import {
 export default async function CategoriaDetalhesPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  // Next.js 15 → params agora é assíncrono
+  const { id } = await params;
+
   // Busca da categoria via serviço oficial
-  const category = await categoryService.getById(params.id);
+  const category = await categoryService.getById(id);
 
   if (!category) {
     return notFound();
