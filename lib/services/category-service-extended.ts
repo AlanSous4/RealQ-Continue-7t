@@ -1,37 +1,45 @@
 import { supabaseClient } from "@/lib/supabase/client"
+import type { Database } from "@/lib/database.types"
 
-// Tipo para a categoria
-export interface Category {
-  id: string
-  name: string
-  created_at: string
+// Tipo oficial vindo do Supabase
+export type Category = Database["public"]["Tables"]["categories"]["Row"]
+
+// Tipo usado para o JOIN com contagem
+interface CategoryWithJoinedProducts extends Category {
+  products?: { count: number }[] | null
 }
 
-// Função para obter todas as categorias
+// --------------------------------------------------
+// Buscar todas as categorias
+// --------------------------------------------------
 export async function getAllCategories(): Promise<Category[]> {
   try {
-    const { data, error } = await supabaseClient.from("categories").select("*").order("name")
+    const { data, error } = await supabaseClient
+      .from("categories")
+      .select("*")
+      .order("name")
 
-    if (error) {
-      throw error
-    }
-
-    return data || []
+    if (error) throw error
+    return data ?? []
   } catch (error) {
     console.error("Erro ao buscar categorias:", error)
     throw error
   }
 }
 
-// Função para obter uma categoria específica por ID
+// --------------------------------------------------
+// Buscar categoria por ID
+// --------------------------------------------------
 export async function getCategoryById(id: string): Promise<Category | null> {
   try {
-    const { data, error } = await supabaseClient.from("categories").select("*").eq("id", id).single()
+    const { data, error } = await supabaseClient
+      .from("categories")
+      .select("*")
+      .eq("id", id)
+      .single()
 
     if (error) {
-      if (error.code === "PGRST116") {
-        return null // Categoria não encontrada
-      }
+      if (error.code === "PGRST116") return null
       throw error
     }
 
@@ -42,15 +50,18 @@ export async function getCategoryById(id: string): Promise<Category | null> {
   }
 }
 
-// Função para criar uma categoria
+// --------------------------------------------------
+// Criar categoria (corrigido + tipado)
+// --------------------------------------------------
 export async function createCategory(name: string): Promise<Category> {
   try {
-    const { data, error } = await supabaseClient.from("categories").insert({ name }).select().single()
+    const { data, error } = await supabaseClient
+      .from("categories")
+      .insert({ name }) // ← types agora corretos
+      .select("*")
+      .single() // melhor que maybeSingle aqui
 
-    if (error) {
-      throw error
-    }
-
+    if (error) throw error
     return data
   } catch (error) {
     console.error("Erro ao criar categoria:", error)
@@ -58,15 +69,19 @@ export async function createCategory(name: string): Promise<Category> {
   }
 }
 
-// Função para atualizar uma categoria
+// --------------------------------------------------
+// Atualizar categoria (corrigido + tipado)
+// --------------------------------------------------
 export async function updateCategory(id: string, name: string): Promise<Category> {
   try {
-    const { data, error } = await supabaseClient.from("categories").update({ name }).eq("id", id).select().single()
+    const { data, error } = await supabaseClient
+      .from("categories")
+      .update({ name }) // ← types agora corretos
+      .eq("id", id)
+      .select("*")
+      .single()
 
-    if (error) {
-      throw error
-    }
-
+    if (error) throw error
     return data
   } catch (error) {
     console.error(`Erro ao atualizar categoria com ID ${id}:`, error)
@@ -74,22 +89,29 @@ export async function updateCategory(id: string, name: string): Promise<Category
   }
 }
 
-// Função para excluir uma categoria
+// --------------------------------------------------
+// Excluir categoria
+// --------------------------------------------------
 export async function deleteCategory(id: string): Promise<void> {
   try {
-    const { error } = await supabaseClient.from("categories").delete().eq("id", id)
+    const { error } = await supabaseClient
+      .from("categories")
+      .delete()
+      .eq("id", id)
 
-    if (error) {
-      throw error
-    }
+    if (error) throw error
   } catch (error) {
     console.error(`Erro ao excluir categoria com ID ${id}:`, error)
     throw error
   }
 }
 
-// Função para obter categorias com contagem de produtos
-export async function getCategoriesWithProductCount(): Promise<(Category & { product_count: number })[]> {
+// --------------------------------------------------
+// Categorias com contagem de produtos
+// --------------------------------------------------
+export async function getCategoriesWithProductCount(): Promise<
+  (Category & { product_count: number })[]
+> {
   try {
     const { data, error } = await supabaseClient
       .from("categories")
@@ -99,15 +121,14 @@ export async function getCategoriesWithProductCount(): Promise<(Category & { pro
       `)
       .order("name")
 
-    if (error) {
-      throw error
-    }
+    if (error) throw error
 
-    // Transformar o resultado para incluir a contagem de produtos
-    return data.map((category) => ({
+    const safeData = (data ?? []) as CategoryWithJoinedProducts[]
+
+    return safeData.map((category) => ({
       ...category,
-      product_count: category.products?.[0]?.count || 0,
-    })) as (Category & { product_count: number })[]
+      product_count: category.products?.[0]?.count ?? 0,
+    }))
   } catch (error) {
     console.error("Erro ao buscar categorias com contagem:", error)
     throw error

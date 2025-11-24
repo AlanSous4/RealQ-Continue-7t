@@ -8,135 +8,134 @@ export type Json =
   | { [key: string]: Json }
   | Json[]
 
-interface Timestamps {
-  created_at?: string
-  updated_at?: string
-}
-
-interface WithId {
-  id: string
-}
-
-interface BaseInsert {
-  id?: string
-  created_at?: string
-}
-
-interface BaseUpdate {
-  id?: string
-  created_at?: string
-  updated_at?: string
-}
-
-// -------------------------------------------------
-//  SCHEMA COMPLETO — AGORA COMPATÍVEL COM SUPABASE
-// -------------------------------------------------
+// ---------------------------------------------
+// Types gerados manualmente conforme seu schema
+// ---------------------------------------------
 export interface Database {
   public: {
     Tables: {
 
       // ---------------- USERS ----------------
       users: {
-        Row: WithId & {
+        Row: {
+          id: string
           email: string | null
           name: string | null
           phone: string | null
           user_type: string | null
           auth_id: string | null
-        } & Timestamps
+          created_at: string
+        }
 
         Insert: {
           id?: string
-          email?: string
-          name?: string
-          phone?: string
-          user_type?: string
-          auth_id?: string
+          email?: string | null
+          name?: string | null
+          phone?: string | null
+          user_type?: string | null
+          auth_id?: string | null
           created_at?: string
-          updated_at?: string
         }
 
         Update: {
           id?: string
-          email?: string
-          name?: string
-          phone?: string
-          user_type?: string
-          auth_id?: string
+          email?: string | null
+          name?: string | null
+          phone?: string | null
+          user_type?: string | null
+          auth_id?: string | null
           created_at?: string
-          updated_at?: string
         }
       },
 
       // ---------------- PRODUCTS ----------------
       products: {
-        Row: WithId & {
+        Row: {
+          id: string
           name: string
           description: string | null
           category_id: string
-          user_id: string
-        } & Timestamps
-
-        Insert: BaseInsert & {
+          created_at: string
+          user_id: string | null
+        }
+      
+        Insert: {
+          id?: string
           name: string
           description?: string | null
           category_id: string
-          user_id: string
+          created_at?: string
+          user_id?: string | null
         }
-
-        Update: BaseUpdate & {
+      
+        Update: {
+          id?: string
           name?: string
           description?: string | null
           category_id?: string
-          user_id?: string
+          created_at?: string
+          user_id?: string | null
         }
       },
 
       // ---------------- CATEGORIES ----------------
       categories: {
-        Row: WithId & {
+        Row: {
+          id: string
           name: string
+          created_at: string
           user_id: string | null
-        } & Timestamps
-
-        Insert: BaseInsert & {
+        }
+      
+        Insert: {
+          id?: string
           name: string
+          created_at?: string
           user_id?: string | null
         }
-
-        Update: BaseUpdate & {
+      
+        Update: {
+          id?: string
           name?: string
+          created_at?: string
           user_id?: string | null
         }
       },
 
       // ---------------- REVENDORES ----------------
       revendedores: {
-        Row: WithId & {
+        Row: {
+          id: string
           nome: string
           email: string
           telefone: string
           cidade: string
-        } & Timestamps
-
-        Insert: BaseInsert & {
-          nome: string
-          email: string
-          telefone: string
-          cidade: string
+          created_at: string
         }
 
-        Update: BaseUpdate & {
+        Insert: {
+          id?: string
+          nome: string
+          email: string
+          telefone: string
+          cidade: string
+          created_at?: string
+        }
+
+        Update: {
+          id?: string
           nome?: string
           email?: string
           telefone?: string
           cidade?: string
+          created_at?: string
         }
       },
 
       // ---------------- INSPECTIONS ----------------
       inspections: {
-        Row: WithId & {
+        Row: {
+          id: string
           product_id: string
           batch: string
           supplier_id: string
@@ -144,9 +143,11 @@ export interface Database {
           expiry_date: string
           status: string
           created_by: string
-        } & Timestamps
+          created_at: string
+        }
 
-        Insert: BaseInsert & {
+        Insert: {
+          id?: string
           product_id: string
           batch: string
           supplier_id: string
@@ -154,9 +155,11 @@ export interface Database {
           expiry_date: string
           status?: string
           created_by: string
+          created_at?: string
         }
 
-        Update: BaseUpdate & {
+        Update: {
+          id?: string
           product_id?: string
           batch?: string
           supplier_id?: string
@@ -164,171 +167,214 @@ export interface Database {
           expiry_date?: string
           status?: string
           created_by?: string
+          created_at?: string
         }
       },
 
       // ---------------- INSPECTION DETAILS ----------------
       inspection_details: {
-        Row: WithId & {
+        Row: {
+          id: string
           inspection_id: string
           test_id: string
           result: string
           notes: string
-        } & Timestamps
+          created_at: string
+        }
 
-        Insert: BaseInsert & {
+        Insert: {
+          id?: string
           inspection_id: string
           test_id: string
           result: string
           notes?: string
+          created_at?: string
         }
 
-        Update: BaseUpdate & {
+        Update: {
+          id?: string
           inspection_id?: string
           test_id?: string
           result?: string
           notes?: string
+          created_at?: string
         }
       },
 
       // ---------------- TESTS ----------------
       tests: {
-        Row: WithId & {
+        Row: {
+          id: string
           name: string
           description: string
-        } & Timestamps
-
-        Insert: BaseInsert & {
-          name: string
-          description?: string
+          created_at: string
         }
 
-        Update: BaseUpdate & {
+        Insert: {
+          id?: string
+          name: string
+          description?: string
+          created_at?: string
+        }
+
+        Update: {
+          id?: string
           name?: string
           description?: string
+          created_at?: string
         }
       },
 
       // ---------------- TOOLS ----------------
       tools: {
-        Row: WithId & {
+        Row: {
+          id: string
           name: string
           description: string
-        } & Timestamps
-
-        Insert: BaseInsert & {
-          name: string
-          description?: string
+          created_at: string
         }
 
-        Update: BaseUpdate & {
+        Insert: {
+          id?: string
+          name: string
+          description?: string
+          created_at?: string
+        }
+
+        Update: {
+          id?: string
           name?: string
           description?: string
+          created_at?: string
         }
       },
 
       // ---------------- SUPPLIERS ----------------
       suppliers: {
-        Row: WithId & {
+        Row: {
+          id: string
           name: string
           contact: string
           email: string
           phone: string
-        } & Timestamps
+          created_at: string
+        }
 
-        Insert: BaseInsert & {
+        Insert: {
+          id?: string
           name: string
           contact?: string
           email: string
           phone?: string
+          created_at?: string
         }
 
-        Update: BaseUpdate & {
+        Update: {
+          id?: string
           name?: string
           contact?: string
           email?: string
           phone?: string
+          created_at?: string
         }
       },
 
       // ---------------- MANUFACTURERS ----------------
       manufacturers: {
-        Row: WithId & {
+        Row: {
+          id: string
           name: string
           contact: string
           email: string
           phone: string
-        } & Timestamps
+          created_at: string
+        }
 
-        Insert: BaseInsert & {
+        Insert: {
+          id?: string
           name: string
           contact?: string
           email: string
           phone?: string
+          created_at?: string
         }
 
-        Update: BaseUpdate & {
+        Update: {
+          id?: string
           name?: string
           contact?: string
           email?: string
           phone?: string
+          created_at?: string
         }
       },
 
       // ---------------- ACTION PLANS ----------------
       action_plans: {
-        Row: WithId & {
+        Row: {
+          id: string
           non_conformity_id: string | null
           description: string
           status: string
           due_date: string | null
           responsible: string | null
-        } & Timestamps
+          created_at: string
+        }
 
-        Insert: BaseInsert & {
+        Insert: {
+          id?: string
           non_conformity_id?: string | null
           description: string
           status?: string
           due_date?: string | null
           responsible?: string | null
+          created_at?: string
         }
 
-        Update: BaseUpdate & {
+        Update: {
+          id?: string
           non_conformity_id?: string | null
           description?: string
           status?: string
           due_date?: string | null
           responsible?: string | null
+          created_at?: string
         }
       },
 
       // ---------------- NON CONFORMITIES ----------------
       non_conformities: {
-        Row: WithId & {
+        Row: {
+          id: string
           inspection_id: string
           description: string
           severity: string
           category: string | null
           impact: string | null
           status: string
-        } & Timestamps
+          created_at: string
+        }
 
-        Insert: BaseInsert & {
+        Insert: {
+          id?: string
           inspection_id: string
           description: string
           severity?: string
           category?: string | null
           impact?: string | null
           status?: string
+          created_at?: string
         }
 
-        Update: BaseUpdate & {
+        Update: {
+          id?: string
           inspection_id?: string
           description?: string
           severity?: string
           category?: string | null
           impact?: string | null
           status?: string
+          created_at?: string
         }
       }
     },
@@ -336,6 +382,6 @@ export interface Database {
     Views: {},
     Functions: {},
     Enums: {},
-    CompositeTypes: {}
+    CompositeTypes: {},
   }
 }

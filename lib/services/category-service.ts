@@ -12,14 +12,33 @@ export class CategoryService extends ApiService<Category> {
     super("categories")
   }
 
-  // Métodos específicos para categorias
+  // Buscar uma categoria pelo ID
+  async getById(id: string): Promise<Category | null> {
+    const { data, error } = await supabaseClient
+      .from(this.tableName)
+      .select("*")
+      .eq("id", id)
+      .single()
+
+    if (error) {
+      // Código padrão do Supabase para "registro não encontrado"
+      if (error.code === "PGRST116") {
+        return null
+      }
+      throw new Error(`Erro ao buscar categoria por ID: ${error.message}`)
+    }
+
+    return data
+  }
 
   // Buscar categorias com contagem de produtos
   async getAllWithProductCount(): Promise<(Category & { product_count: number })[]> {
     const { data, error } = await supabaseClient
       .from(this.tableName)
       .select(`
-        *,
+        id,
+        name,
+        created_at,
         products:products(count)
       `)
       .order("name")
@@ -28,11 +47,17 @@ export class CategoryService extends ApiService<Category> {
       throw new Error(`Erro ao buscar categorias com contagem: ${error.message}`)
     }
 
-    // Transformar o resultado para incluir a contagem de produtos
-    return data.map((category) => ({
+    // Tipagem segura para evitar erro "never"
+    type CategoryWithJoinedProducts = Category & {
+      products?: { count: number }[] | null
+    }
+
+    const safeData = (data ?? []) as CategoryWithJoinedProducts[]
+
+    return safeData.map((category) => ({
       ...category,
-      product_count: category.products?.[0]?.count || 0,
-    })) as (Category & { product_count: number })[]
+      product_count: category.products?.[0]?.count ?? 0,
+    }))
   }
 }
 
