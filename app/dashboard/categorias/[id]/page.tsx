@@ -1,87 +1,114 @@
-/* eslint-disable @next/next/no-img-element */
-import { notFound } from "next/navigation";
-import Link from "next/link";
-import { Pencil } from "lucide-react";
+"use client";
 
-import { categoryService } from "@/lib/services/category-service";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase/client";
+import type { Database } from "@/lib/database.types";
 
-import {
-  WhiteCard,
-  WhiteCardHeader,
-  WhiteCardTitle,
-  WhiteCardDescription,
-  WhiteCardContent,
-} from "@/components/ui/white-card";
+type Category = Database["public"]["Tables"]["categories"]["Row"];
 
-export default async function CategoriaDetalhesPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  // Next.js 15 → params agora é assíncrono
-  const { id } = await params;
+export default function CategoryDetailsPage() {
+  const params = useParams();
+  const router = useRouter();
 
-  // Busca da categoria via serviço oficial
-  const category = await categoryService.getById(id);
+  // Converte ID corretamente para string
+  const rawId = params?.id ?? "";
+  const categoryId = Array.isArray(rawId) ? rawId[0] : rawId;
 
-  if (!category) {
-    return notFound();
+  const [category, setCategory] = useState<Category | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // ==========================
+  // FETCH CATEGORY DETAILS
+  // ==========================
+  useEffect(() => {
+    if (!categoryId) return;
+
+    const fetchCategory = async () => {
+      setLoading(true);
+      setError(null);
+
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("id", categoryId)
+        .single();
+
+      if (error) {
+        setError(error.message);
+      } else {
+        setCategory(data);
+      }
+
+      setLoading(false);
+    };
+
+    fetchCategory();
+  }, [categoryId]);
+
+  // ==========================
+  // DELETE CATEGORY
+  // ==========================
+  async function handleDelete() {
+    if (!confirm("Deseja realmente excluir esta categoria?")) return;
+
+    const { error } = await supabase
+      .from("categories")
+      .delete()
+      .eq("id", categoryId);
+
+    if (error) {
+      alert("Erro ao excluir: " + error.message);
+      return;
+    }
+
+    alert("Categoria excluída com sucesso!");
+    router.push("/dashboard/categories");
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Cabeçalho */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">{category.name}</h2>
-          <p className="text-muted-foreground">Detalhes da categoria</p>
-        </div>
+  // ==========================
+  // UI STATES
+  // ==========================
+  if (loading) return <div className="p-4 text-gray-500">Carregando...</div>;
+  if (error) return <div className="p-4 text-red-500">Erro: {error}</div>;
+  if (!category) return <div className="p-4">Categoria não encontrada.</div>;
 
-        <Link href={`/dashboard/categorias/${category.id}/editar`}>
-          <button className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 transition">
-            <Pencil className="mr-2 h-4 w-4" />
-            Editar
-          </button>
-        </Link>
+  return (
+    <div className="p-6 bg-white rounded shadow-md">
+      <h1 className="text-2xl font-bold mb-4">Detalhes da Categoria</h1>
+
+      <div className="mb-2">
+        <span className="font-semibold">ID:</span> {category.id}
       </div>
 
-      <WhiteCard>
-        <WhiteCardHeader>
-          <WhiteCardTitle>Informações da Categoria</WhiteCardTitle>
-          <WhiteCardDescription>
-            Informações detalhadas sobre esta categoria
-          </WhiteCardDescription>
-        </WhiteCardHeader>
+      <div className="mb-2">
+        <span className="font-semibold">Nome:</span> {category.name}
+      </div>
 
-        <WhiteCardContent className="space-y-6">
-          {/* Nome */}
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground">Nome</h3>
-            <p className="mt-1 text-base">{category.name}</p>
-          </div>
+      <div className="mb-2">
+        <span className="font-semibold">Criado em:</span>{" "}
+        {new Date(category.created_at).toLocaleString()}
+      </div>
 
-          <hr />
+      {/* Ações */}
+      <div className="mt-4 flex gap-2">
+        <button
+          onClick={() =>
+            router.push(`/dashboard/categories/${categoryId}/edit`)
+          }
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Editar
+        </button>
 
-          {/* Dados */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground">ID</h3>
-              <p className="mt-1">{category.id}</p>
-            </div>
-
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground">
-                Data de Cadastro
-              </h3>
-              <p className="mt-1">
-                {category.created_at
-                  ? new Date(category.created_at).toLocaleDateString("pt-BR")
-                  : "—"}
-              </p>
-            </div>
-          </div>
-        </WhiteCardContent>
-      </WhiteCard>
+        <button
+          onClick={handleDelete}
+          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+        >
+          Excluir
+        </button>
+      </div>
     </div>
   );
 }
