@@ -70,21 +70,27 @@ export interface Database {
       // ------------ CATEGORIES ------------
       categories: {
         Row: {
-          id: string
-          name: string
-          created_at: string
-        }
+          id: string;
+          name: string;
+          description: string | null; // 👈 ADICIONE ISTO
+          created_at: string;
+        };
+      
         Insert: {
-          id?: string
-          name: string
-          created_at?: string
-        }
+          id?: string;
+          name: string;
+          description?: string | null; // 👈 ADICIONE ISTO
+          created_at?: string;
+        };
+      
         Update: {
-          id?: string
-          name?: string
-          created_at?: string
-        }
+          id?: string;
+          name?: string;
+          description?: string | null; // 👈 ADICIONE ISTO
+          created_at?: string;
+        };
       }
+      
 
       // ------------ INSPECTIONS ------------
       inspections: {
