@@ -62,7 +62,7 @@ export default function CategoryDetailsPage() {
 
         <button
           onClick={() =>
-            router.push(`/dashboard/categories/${categoryId}/edit`)
+            router.push(`/dashboard/categorias/${categoryId}/editar`)
           }
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
         >
