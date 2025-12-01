@@ -18,6 +18,7 @@ export default function EditCategoryPage() {
 
   const [nome, setNome] = useState("");
   const [descricao, setDescricao] = useState("");
+  const [produtoQuantidade, setProdutoQuantidade] = useState<number | "">("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -42,6 +43,10 @@ export default function EditCategoryPage() {
 
       setNome(data.name ?? "");
       setDescricao(data.description ?? "");
+      setProdutoQuantidade(
+        (data as any).produto_quantidade ?? ""
+      );
+
       setLoading(false);
     }
 
@@ -57,6 +62,8 @@ export default function EditCategoryPage() {
       .update({
         name: nome,
         description: descricao,
+        produto_quantidade:
+          produtoQuantidade === "" ? null : Number(produtoQuantidade),
       })
       .eq("id", id);
 
@@ -87,7 +94,16 @@ export default function EditCategoryPage() {
       <Textarea
         value={descricao}
         onChange={(e) => setDescricao(e.target.value)}
+        className="mb-4"
+      />
+
+      <label className="font-medium">Produto quantidade</label>
+      <Input
+        type="number"
+        value={produtoQuantidade}
+        onChange={(e) => setProdutoQuantidade(e.target.value === "" ? "" : Number(e.target.value))}
         className="mb-6"
+        placeholder="Ex: 100"
       />
 
       <div className="flex gap-3">
