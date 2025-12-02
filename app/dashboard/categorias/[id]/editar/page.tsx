@@ -59,7 +59,7 @@ export default function EditCategoryPage() {
 
     const { error } = await supabase
       .from("categories")
-      .update({
+      .update<Category>({
         name: nome,
         description: descricao,
         produto_quantidade:

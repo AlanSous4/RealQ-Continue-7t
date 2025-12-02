@@ -1,52 +1,90 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
-import type { Database } from "@/lib/database.types";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { useEffect, useState } from "react"
+import { useParams, useRouter } from "next/navigation"
+import { supabase } from "@/lib/supabase/client"
+import type { Database } from "@/lib/database.types"
+import { ArrowLeft, Pencil, Package } from "lucide-react"
 
-type Category = Database["public"]["Tables"]["categories"]["Row"];
+type Category = Database["public"]["Tables"]["categories"]["Row"]
 
 export default function CategoryDetailsPage() {
-  const params = useParams();
-  const router = useRouter();
+  const params = useParams()
+  const router = useRouter()
 
-  // Conserta o ID
-  const rawId = params?.id ?? "";
-  const categoryId = Array.isArray(rawId) ? rawId[0] : rawId;
+  const rawId = params?.id ?? ""
+  const categoryId = Array.isArray(rawId) ? rawId[0] : rawId
 
-  const [category, setCategory] = useState<Category | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [category, setCategory] = useState<Category | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // Load category
+  // Função para carregar categoria
+  const loadCategory = async () => {
+    const { data, error } = await supabase
+      .from("categories")
+      .select("*")
+      .eq("id", categoryId)
+      .single()
+
+    if (error) {
+      setError(error.message)
+    } else {
+      setCategory(data)
+    }
+
+    setLoading(false)
+  }
+
+  // Load inicial
   useEffect(() => {
-    if (!categoryId) return;
+    if (!categoryId) return
+    loadCategory()
+  }, [categoryId])
 
-    const load = async () => {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("*")
-        .eq("id", categoryId)
-        .single();
+  // 🔴 REALTIME: atualiza automaticamente quando products ou categories mudarem
+  useEffect(() => {
+    if (!categoryId) return
 
-      if (error) setError(error.message);
-      else setCategory(data);
+    const channel = supabase
+      .channel(`category-${categoryId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "products",
+          filter: `category_id=eq.${categoryId}`,
+        },
+        () => {
+          loadCategory()
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "categories",
+          filter: `id=eq.${categoryId}`,
+        },
+        () => {
+          loadCategory()
+        },
+      )
+      .subscribe()
 
-      setLoading(false);
-    };
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [categoryId])
 
-    load();
-  }, [categoryId]);
-
-  if (loading) return <div className="p-4">Carregando...</div>;
-  if (error) return <div className="p-4 text-red-500">{error}</div>;
-  if (!category) return <div className="p-4">Categoria não encontrada.</div>;
+  if (loading) return <div className="p-4">Carregando...</div>
+  if (error) return <div className="p-4 text-red-500">{error}</div>
+  if (!category) return <div className="p-4">Categoria não encontrada.</div>
 
   return (
     <div className="p-6">
-
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -72,46 +110,65 @@ export default function CategoryDetailsPage() {
       </div>
 
       {/* Main Box */}
-      <div className="bg-white border rounded-xl p-8 shadow-sm">
-
-        {/* Section Title */}
-        <h2 className="text-xl font-semibold mb-1">Detalhes da Categoria</h2>
-        <p className="text-gray-500 mb-6">
-          Informações detalhadas sobre esta categoria
-        </p>
-
-        {/* Campo Nome */}
-        <div className="mb-6">
-          <h3 className="text-sm font-semibold text-gray-600">Nome</h3>
-          <p className="text-lg">{category.name}</p>
-          <div className="border-b mt-4"></div>
+      <div className="bg-white border rounded-xl p-8 shadow-sm space-y-6">
+        <div>
+          <h2 className="text-xl font-semibold mb-1">
+            Detalhes da Categoria
+          </h2>
+          <p className="text-gray-500">
+            Informações detalhadas sobre esta categoria
+          </p>
         </div>
 
-        {/* Data de criação */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        {/* Nome */}
+        <div>
+          <h3 className="text-sm font-semibold text-gray-600">Nome</h3>
+          <p className="text-lg">{category.name}</p>
+        </div>
+
+        {/* Quantidade de produtos (trigger) */}
+        <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-lg">
+          <Package className="text-blue-600" />
           <div>
-            <h3 className="text-sm font-semibold text-gray-600">ID</h3>
-            <p className="text-lg">{category.id}</p>
+            <h3 className="text-sm font-semibold text-gray-600">
+              Quantidade total de produtos
+            </h3>
+            <p className="text-2xl font-bold">
+              {category.produto_quantidade ?? 0}
+            </p>
+          </div>
+        </div>
+
+        {/* Infos */}
+        <div className="grid grid-cols-2 gap-6">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-600">
+              ID
+            </h3>
+            <p className="text-sm break-all">{category.id}</p>
           </div>
 
           <div>
             <h3 className="text-sm font-semibold text-gray-600">
               Data de Cadastro
             </h3>
-            <p className="text-lg">
+            <p className="text-sm">
               {new Date(category.created_at).toLocaleDateString("pt-BR")}
             </p>
           </div>
         </div>
 
-        <div className="border-b mb-6"></div>
+        <hr />
 
-        {/* Sessão semelhante a "Inspeções Recentes" */}
-        <h3 className="text-lg font-semibold mb-2">Produtos Relacionados</h3>
-        <p className="text-gray-500">
-          (Esta seção pode futuramente listar produtos dessa categoria.)
-        </p>
+        <div>
+          <h3 className="text-lg font-semibold mb-2">
+            Produtos Relacionados
+          </h3>
+          <p className="text-gray-500">
+            (Esta seção pode futuramente listar produtos dessa categoria.)
+          </p>
+        </div>
       </div>
     </div>
-  );
+  )
 }

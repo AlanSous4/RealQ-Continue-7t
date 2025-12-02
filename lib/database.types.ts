@@ -6,8 +6,11 @@ export type Json =
   | { [key: string]: Json }
   | Json[]
 
+export type UserType = "admin" | "user"
+export type InspectionStatus = "pending" | "approved" | "rejected"
+
 // =====================
-// SCHEMA CORRIGIDO
+// SCHEMA CORRIGIDO + MELHORIAS
 // =====================
 
 export interface Database {
@@ -18,26 +21,29 @@ export interface Database {
       users: {
         Row: {
           id: string
+          auth_id: string | null   // ✅ IMPORTANTÍSSIMO
           email: string
           name: string
-          phone: string
-          user_type: string
+          phone: string | null
+          user_type: UserType
           created_at: string
         }
         Insert: {
           id?: string
+          auth_id?: string | null
           email: string
           name: string
-          phone?: string
-          user_type?: string
+          phone?: string | null
+          user_type?: UserType
           created_at?: string
         }
         Update: {
           id?: string
+          auth_id?: string | null
           email?: string
           name?: string
-          phone?: string
-          user_type?: string
+          phone?: string | null
+          user_type?: UserType
           created_at?: string
         }
       }
@@ -47,22 +53,28 @@ export interface Database {
         Row: {
           id: string
           name: string
-          description: string
+          description: string | null
           category_id: string
+          user_id: string | null   // ✅ EXISTE NO BANCO
           created_at: string
+          quantity: number | null  // ✅ necessário para soma
         }
         Insert: {
           id?: string
           name: string
-          description?: string
+          description?: string | null
           category_id: string
+          user_id?: string | null
+          quantity?: number | null
           created_at?: string
         }
         Update: {
           id?: string
           name?: string
-          description?: string
+          description?: string | null
           category_id?: string
+          user_id?: string | null
+          quantity?: number | null
           created_at?: string
         }
       }
@@ -70,27 +82,32 @@ export interface Database {
       // ------------ CATEGORIES ------------
       categories: {
         Row: {
-          id: string;
-          name: string;
-          description: string | null; // 👈 ADICIONE ISTO
-          created_at: string;
-        };
-      
+          id: string
+          name: string
+          description: string | null
+          created_at: string
+          user_id: string | null
+          total_quantity: number | null   // 🔄 nome mais claro
+        }
+
         Insert: {
-          id?: string;
-          name: string;
-          description?: string | null; // 👈 ADICIONE ISTO
-          created_at?: string;
-        };
-      
+          id?: string
+          name: string
+          description?: string | null
+          created_at?: string
+          user_id?: string | null
+          total_quantity?: number | null
+        }
+
         Update: {
-          id?: string;
-          name?: string;
-          description?: string | null; // 👈 ADICIONE ISTO
-          created_at?: string;
-        };
+          id?: string
+          name?: string
+          description?: string | null
+          created_at?: string
+          user_id?: string | null
+          total_quantity?: number | null
+        }
       }
-      
 
       // ------------ INSPECTIONS ------------
       inspections: {
@@ -101,7 +118,7 @@ export interface Database {
           supplier_id: string
           manufacturer_id: string
           expiry_date: string
-          status: string
+          status: InspectionStatus
           created_at: string
           created_by: string
         }
@@ -112,7 +129,7 @@ export interface Database {
           supplier_id: string
           manufacturer_id: string
           expiry_date: string
-          status?: string
+          status?: InspectionStatus
           created_at?: string
           created_by: string
         }
@@ -123,7 +140,7 @@ export interface Database {
           supplier_id?: string
           manufacturer_id?: string
           expiry_date?: string
-          status?: string
+          status?: InspectionStatus
           created_at?: string
           created_by?: string
         }
@@ -136,7 +153,7 @@ export interface Database {
           inspection_id: string
           test_id: string
           result: string
-          notes: string
+          notes: string | null
           created_at: string
         }
         Insert: {
@@ -144,7 +161,7 @@ export interface Database {
           inspection_id: string
           test_id: string
           result: string
-          notes?: string
+          notes?: string | null
           created_at?: string
         }
         Update: {
@@ -152,7 +169,7 @@ export interface Database {
           inspection_id?: string
           test_id?: string
           result?: string
-          notes?: string
+          notes?: string | null
           created_at?: string
         }
       }
@@ -162,19 +179,19 @@ export interface Database {
         Row: {
           id: string
           name: string
-          description: string
+          description: string | null
           created_at: string
         }
         Insert: {
           id?: string
           name: string
-          description?: string
+          description?: string | null
           created_at?: string
         }
         Update: {
           id?: string
           name?: string
-          description?: string
+          description?: string | null
           created_at?: string
         }
       }
@@ -184,19 +201,19 @@ export interface Database {
         Row: {
           id: string
           name: string
-          description: string
+          description: string | null
           created_at: string
         }
         Insert: {
           id?: string
           name: string
-          description?: string
+          description?: string | null
           created_at?: string
         }
         Update: {
           id?: string
           name?: string
-          description?: string
+          description?: string | null
           created_at?: string
         }
       }
@@ -206,25 +223,25 @@ export interface Database {
         Row: {
           id: string
           name: string
-          contact: string
-          email: string
-          phone: string
+          contact: string | null
+          email: string | null
+          phone: string | null
           created_at: string
         }
         Insert: {
           id?: string
           name: string
-          contact?: string
-          email?: string
-          phone?: string
+          contact?: string | null
+          email?: string | null
+          phone?: string | null
           created_at?: string
         }
         Update: {
           id?: string
           name?: string
-          contact?: string
-          email?: string
-          phone?: string
+          contact?: string | null
+          email?: string | null
+          phone?: string | null
           created_at?: string
         }
       }
@@ -234,112 +251,25 @@ export interface Database {
         Row: {
           id: string
           name: string
-          contact: string
-          email: string
-          phone: string
+          contact: string | null
+          email: string | null
+          phone: string | null
           created_at: string
         }
         Insert: {
           id?: string
           name: string
-          contact?: string
-          email?: string
-          phone?: string
+          contact?: string | null
+          email?: string | null
+          phone?: string | null
           created_at?: string
         }
         Update: {
           id?: string
           name?: string
-          contact?: string
-          email?: string
-          phone?: string
-          created_at?: string
-        }
-      }
-
-      // ------------ ACTION PLANS ------------
-      action_plans: {
-        Row: {
-          id: string
-          inspection_id: string
-          description: string
-          status: string
-          due_date: string
-          created_at: string
-          created_by: string
-        }
-        Insert: {
-          id?: string
-          inspection_id: string
-          description: string
-          status?: string
-          due_date: string
-          created_at?: string
-          created_by: string
-        }
-        Update: {
-          id?: string
-          inspection_id?: string
-          description?: string
-          status?: string
-          due_date?: string
-          created_at?: string
-          created_by?: string
-        }
-      }
-
-      // ------------ NON CONFORMITIES ------------
-      non_conformities: {
-        Row: {
-          id: string
-          inspection_id: string
-          description: string
-          severity: string
-          created_at: string
-          created_by: string
-        }
-        Insert: {
-          id?: string
-          inspection_id: string
-          description: string
-          severity?: string
-          created_at?: string
-          created_by: string
-        }
-        Update: {
-          id?: string
-          inspection_id?: string
-          description?: string
-          severity?: string
-          created_at?: string
-          created_by?: string
-        }
-      },
-
-      // ------------ REVENDEDORES ------------
-      revendedores: {
-        Row: {
-          id: string
-          nome: string
-          email: string
-          telefone: string
-          cidade: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          nome: string
-          email: string
-          telefone: string
-          cidade: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          nome?: string
-          email?: string
-          telefone?: string
-          cidade?: string
+          contact?: string | null
+          email?: string | null
+          phone?: string | null
           created_at?: string
         }
       }
@@ -348,7 +278,9 @@ export interface Database {
 
     Views: {}
     Functions: {}
-    Enums: {}
+    Enums: {
+      inspection_status: InspectionStatus
+    }
     CompositeTypes: {}
   }
 }

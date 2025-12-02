@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { Eye, Pencil, Trash2, MoreHorizontal, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -33,41 +34,53 @@ interface CategoryListProps {
 }
 
 export function CategoryList({ searchTerm }: CategoryListProps) {
+
   const { toast } = useToast()
+  const pathname = usePathname()
+
   const [deleteCategoryId, setDeleteCategoryId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [categories, setCategories] = useState<any[]>([])
   const [filteredCategories, setFilteredCategories] = useState<any[]>([])
 
-  // Carregar categorias do Supabase
-  useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        setIsLoading(true)
-        const data = await getCategoriesWithProductCount()
-        setCategories(data)
-      } catch (error) {
-        console.error("Erro ao carregar categorias:", error)
-        toast({
-          title: "Erro ao carregar categorias",
-          description: "Não foi possível carregar a lista de categorias.",
-          variant: "destructive",
-        })
-      } finally {
-        setIsLoading(false)
-      }
-    }
+  console.log("✅ CategoryList carregou")
 
-    loadCategories()
+  // ✅ Função central de carregamento (agora reutilizável)
+  const loadCategories = useCallback(async () => {
+    try {
+      setIsLoading(true)
+
+      const data = await getCategoriesWithProductCount()
+      console.log("🔄 Categorias atualizadas:", data)
+
+      setCategories(data || [])
+    } catch (error) {
+      console.error("Erro ao carregar categorias:", error)
+      toast({
+        title: "Erro ao carregar categorias",
+        description: "Não foi possível carregar a lista de categorias.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }, [toast])
 
-  // Filtrar categorias com base no termo de busca
+  // ✅ SEMPRE QUE A URL MUDA → recarrega categorias
+  useEffect(() => {
+    loadCategories()
+  }, [loadCategories, pathname])
+
+  // ✅ Filtro de busca continua funcionando
   useEffect(() => {
     if (searchTerm.trim() === "") {
       setFilteredCategories(categories)
     } else {
-      const filtered = categories.filter((category) => category.name.toLowerCase().includes(searchTerm.toLowerCase()))
+      const filtered = categories.filter((category) =>
+        category.name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+
       setFilteredCategories(filtered)
     }
   }, [searchTerm, categories])
@@ -75,10 +88,13 @@ export function CategoryList({ searchTerm }: CategoryListProps) {
   const handleDelete = async (id: string) => {
     try {
       setIsDeleting(true)
+
       await deleteCategory(id)
 
-      // Atualizar a lista de categorias após a exclusão
-      setCategories((prevCategories) => prevCategories.filter((category) => category.id !== id))
+      // ✅ Atualiza lista sem precisar recarregar a página
+      setCategories((prevCategories) =>
+        prevCategories.filter((category) => category.id !== id)
+      )
 
       toast({
         title: "Categoria excluída",
@@ -89,7 +105,9 @@ export function CategoryList({ searchTerm }: CategoryListProps) {
       toast({
         title: "Erro ao excluir categoria",
         description:
-          error instanceof Error ? error.message : "Ocorreu um erro ao excluir a categoria. Tente novamente.",
+          error instanceof Error
+            ? error.message
+            : "Ocorreu um erro ao excluir a categoria. Tente novamente.",
         variant: "destructive",
       })
     } finally {
@@ -105,6 +123,7 @@ export function CategoryList({ searchTerm }: CategoryListProps) {
           <Skeleton className="h-8 w-[200px]" />
           <Skeleton className="h-10 w-[150px]" />
         </div>
+
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -123,6 +142,7 @@ export function CategoryList({ searchTerm }: CategoryListProps) {
                 </TableHead>
               </TableRow>
             </TableHeader>
+
             <TableBody>
               {[...Array(5)].map((_, i) => (
                 <TableRow key={i}>
@@ -158,13 +178,16 @@ export function CategoryList({ searchTerm }: CategoryListProps) {
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
+
         <TableBody>
           {filteredCategories.length > 0 ? (
             filteredCategories.map((category) => (
               <TableRow key={category.id}>
                 <TableCell className="font-medium">{category.name}</TableCell>
                 <TableCell>{category.product_count}</TableCell>
-                <TableCell>{new Date(category.created_at).toLocaleDateString("pt-BR")}</TableCell>
+                <TableCell>
+                  {new Date(category.created_at).toLocaleDateString("pt-BR")}
+                </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -204,7 +227,9 @@ export function CategoryList({ searchTerm }: CategoryListProps) {
           ) : (
             <TableRow>
               <TableCell colSpan={4} className="h-24 text-center">
-                {searchTerm ? "Nenhuma categoria encontrada com o termo de busca." : "Nenhuma categoria cadastrada."}
+                {searchTerm
+                  ? "Nenhuma categoria encontrada com o termo de busca."
+                  : "Nenhuma categoria cadastrada."}
               </TableCell>
             </TableRow>
           )}
@@ -216,8 +241,7 @@ export function CategoryList({ searchTerm }: CategoryListProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Isso excluirá permanentemente a categoria e pode afetar produtos
-              associados a ela.
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente a categoria e pode afetar produtos associados a ela.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

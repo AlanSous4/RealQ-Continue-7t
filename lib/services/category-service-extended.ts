@@ -1,12 +1,14 @@
+export const dynamic = "force-dynamic"
+
 import { supabaseClient } from "@/lib/supabase/client"
 import type { Database } from "@/lib/database.types"
 
 // Tipo oficial vindo do Supabase
 export type Category = Database["public"]["Tables"]["categories"]["Row"]
 
-// Tipo usado para o JOIN com contagem
+// Tipo para JOIN com produtos
 interface CategoryWithJoinedProducts extends Category {
-  products?: { count: number }[] | null
+  products?: { id: string }[] | null
 }
 
 // --------------------------------------------------
@@ -57,9 +59,9 @@ export async function createCategory(name: string): Promise<Category> {
   try {
     const { data, error } = await supabaseClient
       .from("categories")
-      .insert({ name }) // ← types agora corretos
+      .insert({ name })
       .select("*")
-      .single() // melhor que maybeSingle aqui
+      .single()
 
     if (error) throw error
     return data
@@ -72,11 +74,14 @@ export async function createCategory(name: string): Promise<Category> {
 // --------------------------------------------------
 // Atualizar categoria (corrigido + tipado)
 // --------------------------------------------------
-export async function updateCategory(id: string, name: string): Promise<Category> {
+export async function updateCategory(
+  id: string,
+  name: string
+): Promise<Category> {
   try {
     const { data, error } = await supabaseClient
       .from("categories")
-      .update({ name }) // ← types agora corretos
+      .update({ name })
       .eq("id", id)
       .select("*")
       .single()
@@ -107,7 +112,7 @@ export async function deleteCategory(id: string): Promise<void> {
 }
 
 // --------------------------------------------------
-// Categorias com contagem de produtos
+// Categorias com contagem de produtos (VERSÃO CORRIGIDA)
 // --------------------------------------------------
 export async function getCategoriesWithProductCount(): Promise<
   (Category & { product_count: number })[]
@@ -116,18 +121,20 @@ export async function getCategoriesWithProductCount(): Promise<
     const { data, error } = await supabaseClient
       .from("categories")
       .select(`
-        *,
-        products:products(count)
+        id,
+        name,
+        description,
+        created_at,
+        products:products(id)
       `)
-      .order("name")
-
-    if (error) throw error
+      .order("created_at", { ascending: false })
+      .throwOnError()
 
     const safeData = (data ?? []) as CategoryWithJoinedProducts[]
 
     return safeData.map((category) => ({
       ...category,
-      product_count: category.products?.[0]?.count ?? 0,
+      product_count: category.products?.length || 0,
     }))
   } catch (error) {
     console.error("Erro ao buscar categorias com contagem:", error)
