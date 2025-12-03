@@ -19,27 +19,28 @@ export default function NewCategoryPage() {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [name, setName] = useState("")
+  const [quantity, setQuantity] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
 
     try {
-      // Salvar no Supabase
-      await createCategory(name)
+      // Salvar no Supabase com quantidade
+      await createCategory(name, Number(quantity))
 
       toast({
         title: "Categoria criada",
         description: "A categoria foi criada com sucesso.",
       })
 
-      // Redirect to categories list
       router.push("/dashboard/categorias")
     } catch (error) {
       console.error("Erro ao criar categoria:", error)
       toast({
         title: "Erro ao criar categoria",
-        description: error instanceof Error ? error.message : "Ocorreu um erro ao criar a categoria. Tente novamente.",
+        description:
+          error instanceof Error ? error.message : "Ocorreu um erro ao criar a categoria.",
         variant: "destructive",
       })
     } finally {
@@ -67,6 +68,8 @@ export default function NewCategoryPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
+
+              {/* Nome */}
               <div className="grid gap-2">
                 <Label htmlFor="name">Nome da Categoria</Label>
                 <Input
@@ -77,10 +80,28 @@ export default function NewCategoryPage() {
                   required
                 />
               </div>
+
+              {/* Quantidade */}
+              <div className="grid gap-2">
+                <Label htmlFor="quantity">Quantidade</Label>
+                <Input
+                  id="quantity"
+                  type="number"
+                  placeholder="Digite a quantidade inicial"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  required
+                  min={0}
+                />
+              </div>
+
             </div>
 
             <div className="flex gap-4">
-              <Button type="submit" disabled={isSubmitting || !name.trim()}>
+              <Button
+                type="submit"
+                disabled={isSubmitting || !name.trim() || !quantity.trim()}
+              >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -90,6 +111,7 @@ export default function NewCategoryPage() {
                   "Salvar Categoria"
                 )}
               </Button>
+
               <Button type="button" variant="outline" asChild>
                 <Link href="/dashboard/categorias">Cancelar</Link>
               </Button>

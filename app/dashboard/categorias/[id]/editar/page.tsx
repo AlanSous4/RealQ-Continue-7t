@@ -74,7 +74,7 @@ export default function EditCategoryPage() {
       return;
     }
 
-    router.push(`/dashboard/categorias/${id}/view`);
+    router.push(`/dashboard/categorias/${id}`);
   }
 
   if (loading) return <p>Carregando...</p>;
@@ -113,7 +113,7 @@ export default function EditCategoryPage() {
 
         <Button
           variant="secondary"
-          onClick={() => router.push(`/dashboard/categorias/${id}/view`)}
+          onClick={() => router.push(`/dashboard/categorias/${id}`)}
         >
           Cancelar
         </Button>

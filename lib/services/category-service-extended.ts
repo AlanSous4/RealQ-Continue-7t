@@ -30,7 +30,7 @@ export async function getAllCategories(): Promise<Category[]> {
 }
 
 // --------------------------------------------------
-// Buscar categoria por ID
+// Buscar categoria por ID — CORRIGIDO (maybeSingle)
 // --------------------------------------------------
 export async function getCategoryById(id: string): Promise<Category | null> {
   try {
@@ -38,30 +38,32 @@ export async function getCategoryById(id: string): Promise<Category | null> {
       .from("categories")
       .select("*")
       .eq("id", id)
-      .single()
+      .maybeSingle()   // 👈 evita erro 404 interno
 
-    if (error) {
-      if (error.code === "PGRST116") return null
-      throw error
-    }
-
-    return data
+    if (error) throw error
+    return data ?? null
   } catch (error) {
     console.error(`Erro ao buscar categoria com ID ${id}:`, error)
-    throw error
+    return null // 👈 evita quebrar a página
   }
 }
 
 // --------------------------------------------------
-// Criar categoria (corrigido + tipado)
+// Criar categoria (mantido — .single() é correto aqui)
 // --------------------------------------------------
-export async function createCategory(name: string): Promise<Category> {
+export async function createCategory(
+  name: string,
+  quantity: number
+): Promise<Category> {
   try {
     const { data, error } = await supabaseClient
       .from("categories")
-      .insert({ name })
+      .insert({
+        name,
+        produto_quantidade: quantity,
+      })
       .select("*")
-      .single()
+      .single() // 👈 Aqui precisa do single()
 
     if (error) throw error
     return data
@@ -72,7 +74,7 @@ export async function createCategory(name: string): Promise<Category> {
 }
 
 // --------------------------------------------------
-// Atualizar categoria (corrigido + tipado)
+// Atualizar categoria (mantido — single permanece)
 // --------------------------------------------------
 export async function updateCategory(
   id: string,
@@ -84,7 +86,7 @@ export async function updateCategory(
       .update({ name })
       .eq("id", id)
       .select("*")
-      .single()
+      .single() // 👈 Aqui também precisa do single()
 
     if (error) throw error
     return data
@@ -112,7 +114,7 @@ export async function deleteCategory(id: string): Promise<void> {
 }
 
 // --------------------------------------------------
-// Categorias com contagem de produtos (VERSÃO CORRIGIDA)
+// Categorias com contagem de produtos
 // --------------------------------------------------
 export async function getCategoriesWithProductCount(): Promise<
   (Category & { product_count: number })[]
@@ -141,3 +143,4 @@ export async function getCategoriesWithProductCount(): Promise<
     throw error
   }
 }
+  

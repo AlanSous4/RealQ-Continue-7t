@@ -86,8 +86,8 @@ export interface Database {
           name: string
           description: string | null
           created_at: string
-          user_id: string | null
-          total_quantity: number | null   // 🔄 nome mais claro
+          user_id: string | null         
+          produto_quantidade: number | null
         }
 
         Insert: {
@@ -95,8 +95,8 @@ export interface Database {
           name: string
           description?: string | null
           created_at?: string
-          user_id?: string | null
-          total_quantity?: number | null
+          user_id?: string | null          
+          produto_quantidade: number | null
         }
 
         Update: {
@@ -105,7 +105,7 @@ export interface Database {
           description?: string | null
           created_at?: string
           user_id?: string | null
-          total_quantity?: number | null
+          produto_quantidade: number | null
         }
       }
 

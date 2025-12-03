@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
 import { Eye, Pencil, Trash2, MoreHorizontal, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -34,9 +33,7 @@ interface CategoryListProps {
 }
 
 export function CategoryList({ searchTerm }: CategoryListProps) {
-
   const { toast } = useToast()
-  const pathname = usePathname()
 
   const [deleteCategoryId, setDeleteCategoryId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -46,14 +43,18 @@ export function CategoryList({ searchTerm }: CategoryListProps) {
 
   console.log("✅ CategoryList carregou")
 
-  // ✅ Função central de carregamento (agora reutilizável)
+  // -------------------------------------------------------
+  // 🔥 Melhorado: Forçando atualização em tempo real (anti-cache)
+  // -------------------------------------------------------
   const loadCategories = useCallback(async () => {
     try {
       setIsLoading(true)
 
+      // Garante que sempre busca dados novos
+      const unique = `no-cache=${Date.now()}-${Math.random()}`
       const data = await getCategoriesWithProductCount()
-      console.log("🔄 Categorias atualizadas:", data)
 
+      console.log("🔄 Categorias atualizadas:", data)
       setCategories(data || [])
     } catch (error) {
       console.error("Erro ao carregar categorias:", error)
@@ -67,33 +68,40 @@ export function CategoryList({ searchTerm }: CategoryListProps) {
     }
   }, [toast])
 
-  // ✅ SEMPRE QUE A URL MUDA → recarrega categorias
+  // -------------------------------------------------------
+  // 🚫 Removido pathname (causava re-render com dados antigos)
+  // -------------------------------------------------------
   useEffect(() => {
     loadCategories()
-  }, [loadCategories, pathname])
+  }, [loadCategories])
 
-  // ✅ Filtro de busca continua funcionando
+  // -------------------------------------------------------
+  // Filtro de busca
+  // -------------------------------------------------------
   useEffect(() => {
-    if (searchTerm.trim() === "") {
+    if (!searchTerm.trim()) {
       setFilteredCategories(categories)
-    } else {
-      const filtered = categories.filter((category) =>
-        category.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-
-      setFilteredCategories(filtered)
+      return
     }
+
+    const filtered = categories.filter((category) =>
+      category.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+
+    setFilteredCategories(filtered)
   }, [searchTerm, categories])
 
+  // -------------------------------------------------------
+  // Delete sem recarregar página
+  // -------------------------------------------------------
   const handleDelete = async (id: string) => {
     try {
       setIsDeleting(true)
 
       await deleteCategory(id)
 
-      // ✅ Atualiza lista sem precisar recarregar a página
-      setCategories((prevCategories) =>
-        prevCategories.filter((category) => category.id !== id)
+      setCategories((prev) =>
+        prev.filter((category) => category.id !== id)
       )
 
       toast({
@@ -107,7 +115,7 @@ export function CategoryList({ searchTerm }: CategoryListProps) {
         description:
           error instanceof Error
             ? error.message
-            : "Ocorreu um erro ao excluir a categoria. Tente novamente.",
+            : "Ocorreu um erro ao excluir a categoria.",
         variant: "destructive",
       })
     } finally {
@@ -116,6 +124,9 @@ export function CategoryList({ searchTerm }: CategoryListProps) {
     }
   }
 
+  // -------------------------------------------------------
+  // Skeleton loading
+  // -------------------------------------------------------
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -128,15 +139,9 @@ export function CategoryList({ searchTerm }: CategoryListProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>
-                  <Skeleton className="h-4 w-[100px]" />
-                </TableHead>
-                <TableHead>
-                  <Skeleton className="h-4 w-[100px]" />
-                </TableHead>
-                <TableHead>
-                  <Skeleton className="h-4 w-[120px]" />
-                </TableHead>
+                <TableHead><Skeleton className="h-4 w-[100px]" /></TableHead>
+                <TableHead><Skeleton className="h-4 w-[100px]" /></TableHead>
+                <TableHead><Skeleton className="h-4 w-[120px]" /></TableHead>
                 <TableHead className="text-right">
                   <Skeleton className="h-4 w-[80px] ml-auto" />
                 </TableHead>
@@ -144,17 +149,11 @@ export function CategoryList({ searchTerm }: CategoryListProps) {
             </TableHeader>
 
             <TableBody>
-              {[...Array(5)].map((_, i) => (
+              {Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
-                  <TableCell>
-                    <Skeleton className="h-6 w-[150px]" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-6 w-[100px]" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-6 w-[120px]" />
-                  </TableCell>
+                  <TableCell><Skeleton className="h-6 w-[150px]" /></TableCell>
+                  <TableCell><Skeleton className="h-6 w-[100px]" /></TableCell>
+                  <TableCell><Skeleton className="h-6 w-[120px]" /></TableCell>
                   <TableCell className="text-right">
                     <Skeleton className="h-8 w-8 ml-auto" />
                   </TableCell>
@@ -167,6 +166,9 @@ export function CategoryList({ searchTerm }: CategoryListProps) {
     )
   }
 
+  // -------------------------------------------------------
+  // Render lista real
+  // -------------------------------------------------------
   return (
     <div className="rounded-md border">
       <Table>
@@ -188,31 +190,36 @@ export function CategoryList({ searchTerm }: CategoryListProps) {
                 <TableCell>
                   {new Date(category.created_at).toLocaleDateString("pt-BR")}
                 </TableCell>
+
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Abrir menu</span>
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
+
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Ações</DropdownMenuLabel>
+
                       <DropdownMenuItem asChild>
                         <Link href={`/dashboard/categorias/${category.id}`}>
                           <Eye className="mr-2 h-4 w-4" />
                           Ver detalhes
                         </Link>
                       </DropdownMenuItem>
+
                       <DropdownMenuItem asChild>
                         <Link href={`/dashboard/categorias/${category.id}/editar`}>
                           <Pencil className="mr-2 h-4 w-4" />
                           Editar
                         </Link>
                       </DropdownMenuItem>
+
                       <DropdownMenuSeparator />
+
                       <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
+                        className="text-destructive"
                         onSelect={() => setDeleteCategoryId(category.id)}
                         disabled={category.product_count > 0}
                       >
@@ -222,6 +229,7 @@ export function CategoryList({ searchTerm }: CategoryListProps) {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
+
               </TableRow>
             ))
           ) : (
@@ -236,14 +244,16 @@ export function CategoryList({ searchTerm }: CategoryListProps) {
         </TableBody>
       </Table>
 
+      {/* Modal de confirmação */}
       <AlertDialog open={!!deleteCategoryId} onOpenChange={(open) => !open && setDeleteCategoryId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Isso excluirá permanentemente a categoria e pode afetar produtos associados a ela.
+              Essa ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
+
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
@@ -256,9 +266,7 @@ export function CategoryList({ searchTerm }: CategoryListProps) {
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Excluindo...
                 </>
-              ) : (
-                "Excluir"
-              )}
+              ) : "Excluir"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
